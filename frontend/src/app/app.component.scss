@@ -1,0 +1,10 @@
+nav {
+  a.active {
+    text-decoration: underline !important;
+    opacity: 0.85;
+  }
+}
+
+main {
+  min-height: calc(100vh - 56px);
+}
