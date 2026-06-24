@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Subject } from './entities/subject.entity';
+import { SubjectsService } from './subject.service';
+import { SubjectsController } from './subjects.controller';
 
-/**
- * Subject and topic management
- * TODO: Add controllers, services, and entities in future iterations.
- */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [TypeOrmModule.forFeature([Subject])],
+  controllers: [SubjectsController],
+  providers: [SubjectsService],
+  exports: [SubjectsService],
 })
 export class SubjectsModule {}

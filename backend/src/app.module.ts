@@ -8,11 +8,11 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 // ── Implemented modules ───────────────────────────────────────────────────────
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
+import { TutorApplicationModule } from './modules/tutor-application/tutor-application.module';
 
 // ── Pending modules (uncomment as each is implemented) ───────────────────────
-// import { TutorApplicationModule } from './modules/tutor-application/tutor-application.module';
 // import { TutorProfileModule } from './modules/tutor-profile/tutor-profile.module';
-// import { SubjectsModule } from './modules/subjects/subjects.module';
 // import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 // import { TimeSlotsModule } from './modules/time-slots/time-slots.module';
 // import { BookingsModule } from './modules/bookings/bookings.module';
@@ -32,6 +32,8 @@ import { UsersModule } from './modules/users/users.module';
     }),
     AuthModule,
     UsersModule,
+    SubjectsModule,
+    TutorApplicationModule,
   ],
 })
 export class AppModule {}
