@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TutorProfile } from './entities/tutor-profile.entity';
+import { TutorProfileService } from './tutor-profile.service';
+import { TutorProfileController } from './tutor-profile.controller';
+import { AuthModule } from '../auth/auth.module';
 
-/**
- * Tutor profile management
- * TODO: Add controllers, services, and entities in future iterations.
- */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [
+    TypeOrmModule.forFeature([TutorProfile]),
+    AuthModule,
+  ],
+  controllers: [TutorProfileController],
+  providers: [TutorProfileService],
+  exports: [TutorProfileService],
 })
 export class TutorProfileModule {}
