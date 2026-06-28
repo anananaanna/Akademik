@@ -13,6 +13,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { TutorProfileService } from './tutor-profile.service';
 import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
 import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
+import { UpdateTutorSubjectsDto } from './dto/update-tutor-subjects.dto';
 import { TutorProfile } from './entities/tutor-profile.entity';
 
 @Controller('tutor-profile')
@@ -45,5 +46,14 @@ export class TutorProfileController {
     @Body() dto: UpdateTutorProfileDto,
   ): Promise<TutorProfile> {
     return this.tutorProfileService.update(userId, dto);
+  }
+
+  // PATCH /api/v1/tutor-profile/me/subjects
+  @Patch('me/subjects')
+  async updateSubjects(
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateTutorSubjectsDto,
+  ): Promise<TutorProfile> {
+    return this.tutorProfileService.updateSubjects(userId, dto.subjectIds);
   }
 }

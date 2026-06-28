@@ -6,8 +6,11 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Subject } from '../../subjects/entities/subject.entity';
 
 @Entity('tutor_profiles')
 export class TutorProfile {
@@ -51,6 +54,18 @@ export class TutorProfile {
 
   @Column({ name: 'is_available', default: true })
   isAvailable: boolean;
+
+  // ─── Relations ────────────────────────────────────────────────────────────
+
+  // JoinTable goes on the owning side (TutorProfile).
+  // TypeORM will create a tutor_profile_subjects join table automatically.
+  @ManyToMany(() => Subject, { eager: false })
+  @JoinTable({
+    name: 'tutor_profile_subjects',
+    joinColumn: { name: 'tutor_profile_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'subject_id', referencedColumnName: 'id' },
+  })
+  subjects: Subject[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
