@@ -11,9 +11,9 @@ import { UsersModule } from './modules/users/users.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
 import { TutorApplicationModule } from './modules/tutor-application/tutor-application.module';
 import { TutorProfileModule } from './modules/tutor-profile/tutor-profile.module';
+import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 
 // ── Pending modules (uncomment as each is implemented) ───────────────────────
-// import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 // import { TimeSlotsModule } from './modules/time-slots/time-slots.module';
 // import { BookingsModule } from './modules/bookings/bookings.module';
 // import { MaterialsModule } from './modules/materials/materials.module';
@@ -35,6 +35,7 @@ import { TutorProfileModule } from './modules/tutor-profile/tutor-profile.module
     SubjectsModule,
     TutorApplicationModule,
     TutorProfileModule,
+    AdvertisementsModule,
   ],
 })
 export class AppModule {}
