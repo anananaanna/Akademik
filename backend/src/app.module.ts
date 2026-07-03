@@ -13,10 +13,10 @@ import { TutorApplicationModule } from './modules/tutor-application/tutor-applic
 import { TutorProfileModule } from './modules/tutor-profile/tutor-profile.module';
 import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 import { TimeSlotsModule } from './modules/time-slots/time-slots.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { MaterialsModule } from './modules/materials/materials.module';
 
 // ── Pending modules (uncomment as each is implemented) ───────────────────────
-// import { BookingsModule } from './modules/bookings/bookings.module';
-// import { MaterialsModule } from './modules/materials/materials.module';
 // import { ReviewsModule } from './modules/reviews/reviews.module';
 // import { ProgressModule } from './modules/progress/progress.module';
 
@@ -37,6 +37,8 @@ import { TimeSlotsModule } from './modules/time-slots/time-slots.module';
     TutorProfileModule,
     AdvertisementsModule,
     TimeSlotsModule,
+    BookingsModule,
+    MaterialsModule,
   ],
 })
 export class AppModule {}
