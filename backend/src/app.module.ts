@@ -15,10 +15,8 @@ import { AdvertisementsModule } from './modules/advertisements/advertisements.mo
 import { TimeSlotsModule } from './modules/time-slots/time-slots.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { MaterialsModule } from './modules/materials/materials.module';
-
-// ── Pending modules (uncomment as each is implemented) ───────────────────────
-// import { ReviewsModule } from './modules/reviews/reviews.module';
-// import { ProgressModule } from './modules/progress/progress.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { ProgressModule } from './modules/progress/progress.module';
 
 @Module({
   imports: [
@@ -39,6 +37,8 @@ import { MaterialsModule } from './modules/materials/materials.module';
     TimeSlotsModule,
     BookingsModule,
     MaterialsModule,
+    ReviewsModule,
+    ProgressModule,
   ],
 })
 export class AppModule {}
