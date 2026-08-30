@@ -1,18 +1,30 @@
-<nav style="padding: 1rem; background: #3b82f6; display: flex; gap: 1.5rem;">
-  <a routerLink="/home" routerLinkActive="active"
-     style="color: white; text-decoration: none; font-weight: 600;">Home</a>
-  <a routerLink="/login" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Login</a>
-  <a routerLink="/register" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Register</a>
-  <a routerLink="/ads" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Ads</a>
-  <a routerLink="/booking" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Booking</a>
-  <a routerLink="/tutor-profile" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Tutor Profile</a>
-  <a routerLink="/admin" routerLinkActive="active"
-     style="color: white; text-decoration: none;">Admin</a>
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/home" class="brand-link">Akademik</a>
+  </div>
+
+  <div class="navbar-links">
+    <a routerLink="/home" routerLinkActive="nav-active">Home</a>
+    <a routerLink="/ads" routerLinkActive="nav-active">Advertisements</a>
+
+    <ng-container *ngIf="!isLoggedIn">
+      <a routerLink="/login" routerLinkActive="nav-active">Login</a>
+      <a routerLink="/register" routerLinkActive="nav-active" class="nav-register">
+        Register
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="isLoggedIn">
+      <a routerLink="/tutor-profile" routerLinkActive="nav-active">Tutor Profile</a>
+      <a routerLink="/booking" routerLinkActive="nav-active">My Bookings</a>
+      <a routerLink="/admin" routerLinkActive="nav-active" *ngIf="isAdmin">Admin</a>
+
+      <div class="nav-user">
+        <span class="nav-username">{{ displayName }}</span>
+        <button class="nav-logout" (click)="logout()">Logout</button>
+      </div>
+    </ng-container>
+  </div>
 </nav>
 
 <main>
