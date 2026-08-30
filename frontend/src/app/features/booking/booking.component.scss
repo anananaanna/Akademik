@@ -1,1 +1,322 @@
-// Book a Lesson styles - to be implemented
+.booking-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.booking-loading {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--color-text-secondary);
+}
+
+.booking-error {
+  text-align: center;
+  padding: 4rem 0;
+
+  h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.booking-header {
+  margin-bottom: var(--spacing-xl);
+
+  h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-top: var(--spacing-sm);
+  }
+}
+
+.back-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.ad-summary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+
+  h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: var(--spacing-sm) 0;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+.ad-summary-header {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.ad-subject {
+  background: #eff6ff;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+}
+
+.ad-level {
+  background: #f0fdf4;
+  color: var(--color-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+}
+
+.ad-rate {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.slots-heading {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.slot-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.slot-date {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  margin-bottom: var(--spacing-xs);
+}
+
+.slot-duration {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.slot-notes {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+}
+
+.confirm-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+
+  h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.confirm-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.confirm-price {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.confirm-notes {
+  margin-top: var(--spacing-lg);
+
+  label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  textarea {
+    width: 100%;
+    padding: 0.625rem var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    color: var(--color-text-primary);
+    resize: vertical;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-lg);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-xl);
+}
+
+.booking-success {
+  text-align: center;
+  padding: 4rem 0;
+
+  h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-secondary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto var(--spacing-lg);
+}
+
+.success-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover {
+    border-color: var(--color-text-secondary);
+    color: var(--color-text-primary);
+  }
+}

@@ -15,16 +15,12 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./features/auth/login/login.component').then(
-        (m) => m.LoginComponent
-      ),
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
     loadComponent: () =>
-      import('./features/auth/register/register.component').then(
-        (m) => m.RegisterComponent
-      ),
+      import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
   },
   {
     path: 'ads',
@@ -35,25 +31,25 @@ export const routes: Routes = [
     path: 'booking',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/booking/booking.component').then(
-        (m) => m.BookingComponent
-      ),
+      import('./features/booking/booking.component').then((m) => m.BookingComponent),
+  },
+  {
+    path: 'my-bookings',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/my-bookings/my-bookings.component').then((m) => m.MyBookingsComponent),
   },
   {
     path: 'tutor-profile',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/tutor-profile/tutor-profile.component').then(
-        (m) => m.TutorProfileComponent
-      ),
+      import('./features/tutor-profile/tutor-profile.component').then((m) => m.TutorProfileComponent),
   },
   {
     path: 'admin',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/admin/admin.component').then(
-        (m) => m.AdminComponent
-      ),
+      import('./features/admin/admin.component').then((m) => m.AdminComponent),
   },
   {
     path: '**',

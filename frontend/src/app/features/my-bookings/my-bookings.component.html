@@ -1,0 +1,59 @@
+<div class="my-bookings-page">
+  <div class="page-header">
+    <h1>My Bookings</h1>
+  </div>
+
+  <div class="bookings-loading" *ngIf="isLoading">
+    <p>Loading bookings...</p>
+  </div>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="bookings-empty" *ngIf="!isLoading && bookings.length === 0">
+    <p>You have no bookings yet.</p>
+    <a routerLink="/ads" class="btn-primary">Browse tutors</a>
+  </div>
+
+  <div class="bookings-list" *ngIf="!isLoading && bookings.length > 0">
+    <div class="booking-card" *ngFor="let booking of bookings">
+
+      <div class="booking-card-header">
+        <div class="booking-meta">
+          <span class="booking-subject" *ngIf="booking.advertisement?.subject?.name">
+            {{ booking.advertisement?.subject?.name }}
+          </span>
+          <span class="booking-status" [class]="getStatusClass(booking.status)">
+            {{ booking.status }}
+          </span>
+        </div>
+        <span class="booking-price">{{ booking.totalPrice }}€</span>
+      </div>
+
+      <h2 class="booking-title" *ngIf="booking.advertisement?.title">
+        {{ booking.advertisement?.title }}
+      </h2>
+
+      <div class="booking-time" *ngIf="booking.timeSlot">
+        <span>{{ formatDateTime(booking.timeSlot.startTime) }}</span>
+        <span class="booking-duration">
+          {{ formatDuration(booking.timeSlot.startTime, booking.timeSlot.endTime) }}
+        </span>
+      </div>
+
+      <div class="booking-notes" *ngIf="booking.notes">
+        <span>{{ booking.notes }}</span>
+      </div>
+
+      <div class="booking-card-footer" *ngIf="canCancel(booking)">
+        <button
+          class="btn-cancel"
+          (click)="cancelBooking(booking.id)"
+          [disabled]="cancellingId === booking.id"
+        >
+          {{ cancellingId === booking.id ? 'Cancelling...' : 'Cancel booking' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

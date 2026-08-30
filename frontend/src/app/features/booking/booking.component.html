@@ -1,4 +1,108 @@
-<div class="page-placeholder">
-  <h1>Book a Lesson</h1>
-  <p>Schedule a lesson with your tutor.</p>
+<div class="booking-page">
+
+  <div class="booking-loading" *ngIf="state === 'loading'">
+    <p>Loading...</p>
+  </div>
+
+  <div class="booking-error" *ngIf="state === 'error'">
+    <h2>Something went wrong</h2>
+    <p>{{ errorMessage }}</p>
+    <a routerLink="/ads" class="btn-secondary">Back to advertisements</a>
+  </div>
+
+  <div *ngIf="state === 'select-slot' && advertisement">
+    <div class="booking-header">
+      <a routerLink="/ads" class="back-link">← Back to advertisements</a>
+      <h1>Book a lesson</h1>
+    </div>
+
+    <div class="ad-summary">
+      <div class="ad-summary-header">
+        <span class="ad-subject">{{ advertisement.subject.name }}</span>
+        <span class="ad-level" *ngIf="advertisement.level">{{ formatLevel(advertisement.level) }}</span>
+      </div>
+      <h2>{{ advertisement.title }}</h2>
+      <p>{{ advertisement.description }}</p>
+      <div class="ad-rate">{{ advertisement.hourlyRate }}€/hr</div>
+    </div>
+
+    <h2 class="slots-heading">Select a time slot</h2>
+    <div class="slots-grid">
+      <button
+        class="slot-card"
+        *ngFor="let slot of availableSlots"
+        (click)="selectSlot(slot)"
+      >
+        <div class="slot-date">{{ formatDateTime(slot.startTime) }}</div>
+        <div class="slot-duration">{{ formatDuration(slot.startTime, slot.endTime) }}</div>
+        <div class="slot-notes" *ngIf="slot.notes">{{ slot.notes }}</div>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="state === 'confirm' && advertisement && selectedSlot">
+    <div class="booking-header">
+      <button class="back-link btn-link" (click)="backToSlots()">← Back to slots</button>
+      <h1>Confirm booking</h1>
+    </div>
+
+    <div class="confirm-card">
+      <h2>Booking summary</h2>
+
+      <div class="confirm-row">
+        <span class="confirm-label">Lesson</span>
+        <span>{{ advertisement.title }}</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Subject</span>
+        <span>{{ advertisement.subject.name }}</span>
+      </div>
+      <div class="confirm-row" *ngIf="advertisement.level">
+        <span class="confirm-label">Level</span>
+        <span>{{ formatLevel(advertisement.level) }}</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Date & time</span>
+        <span>{{ formatDateTime(selectedSlot.startTime) }}</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Duration</span>
+        <span>{{ formatDuration(selectedSlot.startTime, selectedSlot.endTime) }}</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Price</span>
+        <span class="confirm-price">{{ advertisement.hourlyRate }}€</span>
+      </div>
+
+      <div class="confirm-notes">
+        <label for="notes">Notes for tutor (optional)</label>
+        <textarea
+          id="notes"
+          [(ngModel)]="bookingNotes"
+          rows="3"
+          placeholder="Anything you'd like the tutor to know..."
+        ></textarea>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="confirm-actions">
+        <button class="btn-secondary" (click)="backToSlots()">Back</button>
+        <button class="btn-primary" (click)="confirmBooking()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Booking...' : 'Confirm booking' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="booking-success" *ngIf="state === 'success'">
+    <div class="success-icon">✓</div>
+    <h1>Booking confirmed</h1>
+    <p>Your lesson has been booked successfully.</p>
+    <div class="success-actions">
+      <button class="btn-primary" (click)="goToMyBookings()">View my bookings</button>
+      <a routerLink="/ads" class="btn-secondary">Browse more tutors</a>
+    </div>
+  </div>
+
 </div>
