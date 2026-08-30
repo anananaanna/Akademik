@@ -43,6 +43,21 @@ export class TutorProfileService {
     return this.tutorProfileRepository.save(profile);
   }
 
+  // ─── Find by id (public) ─────────────────────────────────────────────────
+
+  async findById(id: string): Promise<TutorProfile> {
+    const profile = await this.tutorProfileRepository.findOne({
+      where: { id },
+      relations: ['subjects'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Tutor profile not found');
+    }
+
+    return profile;
+  }
+
   // ─── Find by userId ───────────────────────────────────────────────────────
 
   async findByUserId(userId: string): Promise<TutorProfile> {

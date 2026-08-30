@@ -45,6 +45,10 @@ export class TutorProfileService {
     return this.http.get<TutorProfile>(`${this.baseUrl}/me`);
   }
 
+  getById(tutorProfileId: string): Observable<TutorProfile> {
+    return this.http.get<TutorProfile>(`${this.baseUrl}/${tutorProfileId}`);
+  }
+
   createProfile(payload: UpdateTutorProfilePayload): Observable<TutorProfile> {
     return this.http.post<TutorProfile>(this.baseUrl, payload);
   }

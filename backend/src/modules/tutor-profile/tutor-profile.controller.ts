@@ -4,9 +4,11 @@ import {
   Post,
   Patch,
   Body,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -17,12 +19,11 @@ import { UpdateTutorSubjectsDto } from './dto/update-tutor-subjects.dto';
 import { TutorProfile } from './entities/tutor-profile.entity';
 
 @Controller('tutor-profile')
-@UseGuards(JwtAuthGuard)
 export class TutorProfileController {
   constructor(private readonly tutorProfileService: TutorProfileService) {}
 
-  // POST /api/v1/tutor-profile
   @Post()
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @CurrentUser('id') userId: string,
@@ -31,16 +32,23 @@ export class TutorProfileController {
     return this.tutorProfileService.create(userId, dto);
   }
 
-  // GET /api/v1/tutor-profile/me
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   async findMine(
     @CurrentUser('id') userId: string,
   ): Promise<TutorProfile> {
     return this.tutorProfileService.findByUserId(userId);
   }
 
-  // PATCH /api/v1/tutor-profile/me
+  @Get(':id')
+  async findById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<TutorProfile> {
+    return this.tutorProfileService.findById(id);
+  }
+
   @Patch('me')
+  @UseGuards(JwtAuthGuard)
   async update(
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateTutorProfileDto,
@@ -48,8 +56,8 @@ export class TutorProfileController {
     return this.tutorProfileService.update(userId, dto);
   }
 
-  // PATCH /api/v1/tutor-profile/me/subjects
   @Patch('me/subjects')
+  @UseGuards(JwtAuthGuard)
   async updateSubjects(
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateTutorSubjectsDto,
