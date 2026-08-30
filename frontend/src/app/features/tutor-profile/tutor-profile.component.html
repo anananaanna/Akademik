@@ -1,4 +1,152 @@
-<div class="page-placeholder">
-  <h1>Tutor Profile</h1>
-  <p>View and manage tutor profile details.</p>
+<div class="profile-page">
+
+  <div class="profile-loading" *ngIf="state === 'loading'">
+    <p>Loading profile...</p>
+  </div>
+
+  <div class="no-profile" *ngIf="state === 'no-profile'">
+    <h1>Tutor Profile</h1>
+    <p>You do not have a tutor profile yet.</p>
+    <button class="btn-primary" (click)="startCreate()">Create profile</button>
+  </div>
+
+  <div class="profile-view" *ngIf="state === 'view' && profile">
+    <div class="profile-header">
+      <div>
+        <h1>My Tutor Profile</h1>
+        <span class="availability-badge" [class.available]="profile.isAvailable">
+          {{ profile.isAvailable ? 'Available' : 'Unavailable' }}
+        </span>
+      </div>
+      <button class="btn-primary" (click)="startEdit()">Edit profile</button>
+    </div>
+
+    <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+
+    <div class="profile-grid">
+      <div class="profile-section">
+        <h2>About</h2>
+        <p *ngIf="profile.bio">{{ profile.bio }}</p>
+        <p class="empty-field" *ngIf="!profile.bio">No bio added yet.</p>
+      </div>
+
+      <div class="profile-section">
+        <h2>Details</h2>
+        <div class="detail-row" *ngIf="profile.city || profile.country">
+          <span class="detail-label">Location</span>
+          <span>{{ profile.city }}<span *ngIf="profile.city && profile.country">, </span>{{ profile.country }}</span>
+        </div>
+        <div class="detail-row" *ngIf="profile.education">
+          <span class="detail-label">Education</span>
+          <span>{{ profile.education }}</span>
+        </div>
+        <div class="detail-row" *ngIf="profile.experienceYears !== null">
+          <span class="detail-label">Experience</span>
+          <span>{{ profile.experienceYears }} year{{ profile.experienceYears !== 1 ? 's' : '' }}</span>
+        </div>
+        <div class="detail-row" *ngIf="profile.hourlyRate !== null">
+          <span class="detail-label">Hourly rate</span>
+          <span>{{ profile.hourlyRate }}€/hr</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>Subjects</h2>
+        <div class="subjects-list" *ngIf="profile.subjects.length > 0">
+          <span class="subject-tag" *ngFor="let subject of profile.subjects">
+            {{ subject.name }}
+          </span>
+        </div>
+        <p class="empty-field" *ngIf="profile.subjects.length === 0">No subjects added yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-form-container" *ngIf="state === 'edit' || state === 'create'">
+    <div class="form-header">
+      <h1>{{ state === 'create' ? 'Create Tutor Profile' : 'Edit Profile' }}</h1>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-section">
+        <h2>About you</h2>
+
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea
+            id="bio"
+            formControlName="bio"
+            rows="4"
+            placeholder="Tell students about yourself..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input id="city" type="text" formControlName="city" placeholder="Belgrade" />
+          </div>
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input id="country" type="text" formControlName="country" placeholder="Serbia" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="education">Education</label>
+          <input id="education" type="text" formControlName="education" placeholder="BSc Mathematics, University of Belgrade" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="experienceYears">Years of experience</label>
+            <input id="experienceYears" type="number" formControlName="experienceYears" min="0" max="60" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="hourlyRate">Hourly rate (€)</label>
+            <input id="hourlyRate" type="number" formControlName="hourlyRate" min="0" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="profilePhotoUrl">Profile photo URL</label>
+          <input id="profilePhotoUrl" type="url" formControlName="profilePhotoUrl" placeholder="https://example.com/photo.jpg" />
+        </div>
+
+        <div class="form-group form-checkbox">
+          <input id="isAvailable" type="checkbox" formControlName="isAvailable" />
+          <label for="isAvailable">I am currently available for bookings</label>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="availableSubjects.length > 0">
+        <h2>Subjects you teach</h2>
+        <div class="subjects-selector">
+          <button
+            type="button"
+            class="subject-btn"
+            [class.selected]="isSubjectSelected(subject.id)"
+            *ngFor="let subject of availableSubjects"
+            (click)="toggleSubject(subject.id)"
+          >
+            {{ subject.name }}
+          </button>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelEdit()" *ngIf="state === 'edit'">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="isSaving">
+          {{ isSaving ? 'Saving...' : state === 'create' ? 'Create profile' : 'Save changes' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
 </div>
