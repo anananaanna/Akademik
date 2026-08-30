@@ -1,4 +1,82 @@
-<div class="page-placeholder">
-  <h1>Register</h1>
-  <p>Create a new account.</p>
+<div class="auth-container">
+  <div class="auth-card">
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-subtitle">Join Akademik as a student or tutor</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First name</label>
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="Ana"
+            [class.input-error]="firstName?.invalid && firstName?.touched"
+          />
+          <span class="error-text" *ngIf="firstName?.invalid && firstName?.touched">
+            First name must be 2–100 characters.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last name</label>
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="Petrović"
+            [class.input-error]="lastName?.invalid && lastName?.touched"
+          />
+          <span class="error-text" *ngIf="lastName?.invalid && lastName?.touched">
+            Last name must be 2–100 characters.
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          [class.input-error]="email?.invalid && email?.touched"
+        />
+        <span class="error-text" *ngIf="email?.invalid && email?.touched">
+          Please enter a valid email address.
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Min. 8 characters"
+          [class.input-error]="password?.invalid && password?.touched"
+        />
+        <span class="error-text" *ngIf="password?.invalid && password?.touched">
+          Password must be at least 8 characters and contain an uppercase
+          letter, a lowercase letter, and a number.
+        </span>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        {{ isLoading ? 'Creating account...' : 'Create account' }}
+      </button>
+
+    </form>
+
+    <p class="auth-footer">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
 </div>

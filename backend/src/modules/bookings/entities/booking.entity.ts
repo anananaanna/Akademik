@@ -56,7 +56,7 @@ export class Booking {
   // ─── Time slot ────────────────────────────────────────────────────────────
   // unique: true at the DB level is the hard guarantee against double booking.
 
-  @Column({ name: 'time_slot_id', unique: true })
+  @Column({ name: 'time_slot_id'})
   timeSlotId: string;
 
   @OneToOne(() => TimeSlot, { onDelete: 'RESTRICT' })
