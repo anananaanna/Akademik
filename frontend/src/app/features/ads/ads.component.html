@@ -1,4 +1,106 @@
-<div class="page-placeholder">
-  <h1>Tutor Advertisements</h1>
-  <p>Browse tutor listings and advertisements.</p>
+<div class="ads-page">
+
+  <!-- Header -->
+  <div class="ads-header">
+    <div class="ads-header-content">
+      <h1>Find a Tutor</h1>
+      <p class="ads-subtitle">
+        Browse {{ totalCount }} available lesson{{ totalCount !== 1 ? 's' : '' }}
+        <span *ngIf="filteredAds.length > 0 && averageRate > 0">
+          · avg. {{ averageRate }}€/hr
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="filter-search"
+      placeholder="Search by title or description..."
+      [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange()"
+    />
+
+    <select
+      class="filter-select"
+      [(ngModel)]="selectedSubject"
+      (ngModelChange)="onSubjectChange()"
+    >
+      <option value="">All subjects</option>
+      <option *ngFor="let subject of subjects" [value]="subject">
+        {{ subject }}
+      </option>
+    </select>
+
+    <select
+      class="filter-select"
+      [(ngModel)]="selectedLevel"
+      (ngModelChange)="onLevelChange()"
+    >
+      <option value="">All levels</option>
+      <option *ngFor="let level of levels" [value]="level">
+        {{ formatLevel(level) }}
+      </option>
+    </select>
+
+    <button
+      class="btn-clear"
+      (click)="clearFilters()"
+      *ngIf="selectedSubject || selectedLevel || searchText"
+    >
+      Clear filters
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div class="ads-loading" *ngIf="isLoading">
+    <p>Loading advertisements...</p>
+  </div>
+
+  <!-- Error state -->
+  <div class="ads-error" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Empty state -->
+  <div class="ads-empty" *ngIf="!isLoading && !errorMessage && filteredAds.length === 0">
+    <p>No advertisements found.</p>
+    <button class="btn-clear" (click)="clearFilters()" *ngIf="selectedSubject || selectedLevel || searchText">
+      Clear filters
+    </button>
+  </div>
+
+  <!-- Ads grid -->
+  <div class="ads-grid" *ngIf="!isLoading && filteredAds.length > 0">
+    <div class="ad-card" *ngFor="let ad of filteredAds">
+
+      <div class="ad-card-header">
+        <span class="ad-subject">{{ ad.subject.name }}</span>
+        <span class="ad-level" *ngIf="ad.level">{{ formatLevel(ad.level) }}</span>
+      </div>
+
+      <h2 class="ad-title">{{ ad.title }}</h2>
+      <p class="ad-description">{{ ad.description }}</p>
+
+      <div class="ad-meta">
+        <span class="ad-location" *ngIf="ad.tutorProfile?.city">
+          📍 {{ ad.tutorProfile.city }}<span *ngIf="ad.tutorProfile?.country">, {{ ad.tutorProfile.country }}</span>
+        </span>
+        <span class="ad-experience" *ngIf="ad.tutorProfile?.experienceYears">
+          {{ ad.tutorProfile.experienceYears }} yr{{ ad.tutorProfile.experienceYears !== 1 ? 's' : '' }} exp.
+        </span>
+      </div>
+
+      <div class="ad-card-footer">
+        <span class="ad-rate">{{ ad.hourlyRate }}€<span class="ad-rate-unit">/hr</span></span>
+        <button class="btn-book" (click)="bookAd(ad)">
+          {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </div>
