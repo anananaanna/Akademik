@@ -1,4 +1,62 @@
-<div class="page-placeholder">
-  <h1>Welcome to the Tutoring Platform</h1>
-  <p>Browse available tutors and book lessons.</p>
+<div class="home-page">
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">Find your perfect tutor</h1>
+      <p class="hero-subtitle">
+        Connect with qualified tutors for personalized one-on-one lessons.
+        Browse {{ totalAds }} available lesson{{ totalAds !== 1 ? 's' : '' }} and book your first session today.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-hero-primary" (click)="navigateToAds()">Browse tutors</button>
+        <a routerLink="/register" class="btn-hero-secondary" *ngIf="!isLoggedIn">
+          Create account
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="featured-section" *ngIf="!isLoading && featuredAds.length > 0">
+    <div class="section-header">
+      <h2>Featured lessons</h2>
+      <a routerLink="/ads" class="see-all-link">See all →</a>
+    </div>
+
+    <div class="featured-grid">
+      <div class="featured-card" *ngFor="let ad of featuredAds">
+        <div class="featured-card-header">
+          <span class="featured-subject">{{ ad.subject.name }}</span>
+          <span class="featured-level" *ngIf="ad.level">{{ formatLevel(ad.level) }}</span>
+        </div>
+        <h3 class="featured-title">{{ ad.title }}</h3>
+        <p class="featured-description">{{ ad.description }}</p>
+        <div class="featured-footer">
+          <span class="featured-rate">{{ ad.hourlyRate }}€/hr</span>
+          <a routerLink="/ads" class="featured-link">View →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps-section">
+    <h2>How it works</h2>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Browse</h3>
+        <p>Search through tutor advertisements and find the right match for your subject and level.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Book</h3>
+        <p>Select an available time slot that fits your schedule and confirm your booking instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Learn</h3>
+        <p>Attend your lesson, receive materials from your tutor, and track your progress over time.</p>
+      </div>
+    </div>
+  </section>
+
 </div>
