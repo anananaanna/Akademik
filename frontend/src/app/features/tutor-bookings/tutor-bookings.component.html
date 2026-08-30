@@ -1,0 +1,60 @@
+<div class="tutor-bookings-page">
+  <div class="page-header">
+    <h1>Student Bookings</h1>
+    <p class="page-subtitle">Manage lessons booked with you</p>
+  </div>
+
+  <div class="bookings-loading" *ngIf="isLoading">
+    <p>Loading bookings...</p>
+  </div>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="bookings-empty" *ngIf="!isLoading && bookings.length === 0">
+    <p>No students have booked a lesson with you yet.</p>
+    <a routerLink="/tutor-profile" class="btn-primary">Manage your profile</a>
+  </div>
+
+  <div class="bookings-list" *ngIf="!isLoading && bookings.length > 0">
+    <div class="booking-card" *ngFor="let booking of bookings">
+
+      <div class="booking-card-header">
+        <div class="booking-meta">
+          <span class="booking-subject" *ngIf="booking.advertisement?.subject?.name">
+            {{ booking.advertisement?.subject?.name }}
+          </span>
+          <span class="booking-status" [class]="getStatusClass(booking.status)">
+            {{ booking.status }}
+          </span>
+        </div>
+        <span class="booking-price">{{ booking.totalPrice }}€</span>
+      </div>
+
+      <h2 class="booking-title" *ngIf="booking.advertisement?.title">
+        {{ booking.advertisement?.title }}
+      </h2>
+
+      <div class="booking-time" *ngIf="booking.timeSlot">
+        <span>{{ formatDateTime(booking.timeSlot.startTime) }}</span>
+        <span class="booking-duration">
+          {{ formatDuration(booking.timeSlot.startTime, booking.timeSlot.endTime) }}
+        </span>
+      </div>
+
+      <div class="booking-notes" *ngIf="booking.notes">
+        <span class="notes-label">Student note:</span> {{ booking.notes }}
+      </div>
+
+      <div class="booking-card-footer" *ngIf="canComplete(booking)">
+        <button
+          class="btn-complete"
+          (click)="completeBooking(booking.id)"
+          [disabled]="completingId === booking.id"
+        >
+          {{ completingId === booking.id ? 'Marking...' : 'Mark as completed' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

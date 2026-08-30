@@ -40,6 +40,12 @@ export const routes: Routes = [
       import('./features/my-bookings/my-bookings.component').then((m) => m.MyBookingsComponent),
   },
   {
+    path: 'tutor-bookings',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/tutor-bookings/tutor-bookings.component').then((m) => m.TutorBookingsComponent),
+  },
+  {
     path: 'tutor-profile',
     canActivate: [authGuard],
     loadComponent: () =>
