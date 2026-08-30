@@ -27,6 +27,30 @@
   }
 }
 
+.booking-blocked {
+  text-align: center;
+  padding: 4rem 0;
+
+  h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.blocked-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .booking-header {
   margin-bottom: var(--spacing-xl);
 

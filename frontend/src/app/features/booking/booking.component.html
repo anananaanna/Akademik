@@ -4,6 +4,15 @@
     <p>Loading...</p>
   </div>
 
+  <div class="booking-blocked" *ngIf="state === 'blocked'">
+    <h2>Tutors cannot book lessons</h2>
+    <p>Your account has a tutor profile. Only students can book lessons.</p>
+    <div class="blocked-actions">
+      <a routerLink="/tutor-bookings" class="btn-primary">View your student bookings</a>
+      <a routerLink="/ads" class="btn-secondary">Browse advertisements</a>
+    </div>
+  </div>
+
   <div class="booking-error" *ngIf="state === 'error'">
     <h2>Something went wrong</h2>
     <p>{{ errorMessage }}</p>

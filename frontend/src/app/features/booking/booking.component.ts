@@ -2,13 +2,14 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subject } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Subject, EMPTY } from 'rxjs';
+import { switchMap, takeUntil, tap, catchError } from 'rxjs/operators';
 import { AdvertisementService, Advertisement } from '../../core/services/advertisement.service';
 import { TimeSlotService, TimeSlot } from '../../core/services/time-slot.service';
 import { BookingService } from '../../core/services/booking.service';
+import { TutorProfileService } from '../../core/services/tutor-profile.service';
 
-type PageState = 'loading' | 'error' | 'select-slot' | 'confirm' | 'success';
+type PageState = 'loading' | 'error' | 'blocked' | 'select-slot' | 'confirm' | 'success';
 
 @Component({
   selector: 'app-booking',
@@ -35,9 +36,22 @@ export class BookingComponent implements OnInit, OnDestroy {
     private advertisementService: AdvertisementService,
     private timeSlotService: TimeSlotService,
     private bookingService: BookingService,
+    private tutorProfileService: TutorProfileService,
   ) {}
 
   ngOnInit(): void {
+    this.tutorProfileService.getMyProfile().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => {
+        this.loadAdvertisement();
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.state = 'blocked';
+    });
+  }
+
+  private loadAdvertisement(): void {
     this.route.queryParams.pipe(
       takeUntil(this.destroy$),
       switchMap(params => {
