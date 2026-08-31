@@ -1,15 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   Subject,
   BehaviorSubject,
   combineLatest,
   takeUntil,
+  EMPTY,
 } from 'rxjs';
 import { map, switchMap, tap, catchError } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
 import {
   AdvertisementService,
   Advertisement,
@@ -20,7 +20,7 @@ import { TutorProfileService } from '../../core/services/tutor-profile.service';
 @Component({
   selector: 'app-ads',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './ads.component.html',
   styleUrl: './ads.component.scss',
 })

@@ -28,6 +28,13 @@ export const routes: Routes = [
       import('./features/ads/ads.component').then((m) => m.AdsComponent),
   },
   {
+    path: 'tutor/:id',
+    loadComponent: () =>
+      import('./features/public-tutor-profile/public-tutor-profile.component').then(
+        (m) => m.PublicTutorProfileComponent
+      ),
+  },
+  {
     path: 'booking',
     canActivate: [authGuard],
     loadComponent: () =>

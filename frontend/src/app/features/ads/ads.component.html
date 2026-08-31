@@ -1,6 +1,5 @@
 <div class="ads-page">
 
-  <!-- Header -->
   <div class="ads-header">
     <div class="ads-header-content">
       <h1>Find a Tutor</h1>
@@ -13,7 +12,6 @@
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
     <input
       type="text"
@@ -54,17 +52,14 @@
     </button>
   </div>
 
-  <!-- Loading state -->
   <div class="ads-loading" *ngIf="isLoading">
     <p>Loading advertisements...</p>
   </div>
 
-  <!-- Error state -->
   <div class="ads-error" *ngIf="errorMessage">
     <p>{{ errorMessage }}</p>
   </div>
 
-  <!-- Empty state -->
   <div class="ads-empty" *ngIf="!isLoading && !errorMessage && filteredAds.length === 0">
     <p>No advertisements found.</p>
     <button class="btn-clear" (click)="clearFilters()" *ngIf="selectedSubject || selectedLevel || searchText">
@@ -72,7 +67,6 @@
     </button>
   </div>
 
-  <!-- Ads grid -->
   <div class="ads-grid" *ngIf="!isLoading && filteredAds.length > 0">
     <div class="ad-card" *ngFor="let ad of filteredAds">
 
@@ -95,9 +89,14 @@
 
       <div class="ad-card-footer">
         <span class="ad-rate">{{ ad.hourlyRate }}€<span class="ad-rate-unit">/hr</span></span>
-        <button class="btn-book" (click)="bookAd(ad)" *ngIf="!isTutor">
-          {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
-        </button>
+        <div class="ad-card-actions">
+          <a [routerLink]="['/tutor', ad.tutorProfileId]" class="btn-view-tutor">
+            View tutor
+          </a>
+          <button class="btn-book" (click)="bookAd(ad)" *ngIf="!isTutor">
+            {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
+          </button>
+        </div>
       </div>
 
     </div>

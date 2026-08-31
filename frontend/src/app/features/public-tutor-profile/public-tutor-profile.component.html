@@ -1,0 +1,93 @@
+<div class="public-profile-page">
+
+  <div class="profile-loading" *ngIf="isLoading">
+    <p>Loading tutor profile...</p>
+  </div>
+
+  <div class="profile-error" *ngIf="!isLoading && errorMessage">
+    <h2>Profile not found</h2>
+    <p>{{ errorMessage }}</p>
+    <a routerLink="/ads" class="btn-primary">Back to advertisements</a>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && profile">
+
+    <a routerLink="/ads" class="back-link">← Back to advertisements</a>
+
+    <div class="profile-hero">
+      <div class="profile-avatar" *ngIf="profile.profilePhotoUrl">
+        <img [src]="profile.profilePhotoUrl" alt="Tutor photo" />
+      </div>
+      <div class="profile-avatar placeholder-avatar" *ngIf="!profile.profilePhotoUrl">
+        {{ profile.city ? profile.city[0].toUpperCase() : 'T' }}
+      </div>
+
+      <div class="profile-hero-info">
+        <div class="profile-badges">
+          <span class="badge-available" *ngIf="profile.isAvailable">Available</span>
+          <span class="badge-unavailable" *ngIf="!profile.isAvailable">Not available</span>
+          <span class="badge-rate" *ngIf="profile.hourlyRate">from {{ profile.hourlyRate }}€/hr</span>
+        </div>
+        <div class="profile-location" *ngIf="profile.city || profile.country">
+          📍 {{ profile.city }}<span *ngIf="profile.city && profile.country">, </span>{{ profile.country }}
+        </div>
+        <div class="profile-experience" *ngIf="profile.experienceYears !== null">
+          {{ profile.experienceYears }} year{{ profile.experienceYears !== 1 ? 's' : '' }} of experience
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-body">
+
+      <div class="profile-section" *ngIf="profile.bio">
+        <h2>About</h2>
+        <p>{{ profile.bio }}</p>
+      </div>
+
+      <div class="profile-section" *ngIf="profile.education">
+        <h2>Education</h2>
+        <p>{{ profile.education }}</p>
+      </div>
+
+      <div class="profile-section" *ngIf="profile.subjects.length > 0">
+        <h2>Subjects</h2>
+        <div class="subjects-list">
+          <span class="subject-tag" *ngFor="let subject of profile.subjects">
+            {{ subject.name }}
+          </span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>Available lessons</h2>
+
+        <div class="no-ads" *ngIf="advertisements.length === 0">
+          <p>No active advertisements at the moment.</p>
+        </div>
+
+        <div class="ads-list" *ngIf="advertisements.length > 0">
+          <div class="ad-card" *ngFor="let ad of advertisements">
+            <div class="ad-card-header">
+              <span class="ad-subject">{{ ad.subject.name }}</span>
+              <span class="ad-level" *ngIf="ad.level">{{ formatLevel(ad.level) }}</span>
+            </div>
+            <h3 class="ad-title">{{ ad.title }}</h3>
+            <p class="ad-description">{{ ad.description }}</p>
+            <div class="ad-footer">
+              <span class="ad-rate">{{ ad.hourlyRate }}€/hr</span>
+              <button
+                class="btn-book"
+                (click)="bookAd(ad)"
+                *ngIf="!isTutor"
+              >
+                {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
