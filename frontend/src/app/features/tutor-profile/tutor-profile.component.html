@@ -1,12 +1,52 @@
 <div class="profile-page">
 
   <div class="profile-loading" *ngIf="state === 'loading'">
-    <p>Loading profile...</p>
+    <p>Loading...</p>
+  </div>
+
+  <div class="no-application" *ngIf="state === 'no-application'">
+    <h1>Become a Tutor</h1>
+    <p class="page-subtitle">
+      Tell us why you want to become a tutor on Akademik.
+      After submitting, you will be able to create your tutor profile and start accepting students.
+    </p>
+
+    <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+
+    <form [formGroup]="applicationForm" (ngSubmit)="submitApplication()" novalidate class="application-form">
+      <div class="form-section">
+        <div class="form-group">
+          <label for="motivation">Why do you want to become a tutor?</label>
+          <textarea
+            id="motivation"
+            formControlName="motivation"
+            rows="8"
+            placeholder="Describe your teaching experience, motivation, and what you can offer to students... (minimum 50 characters)"
+          ></textarea>
+          <div class="char-count" [class.error]="motivationLength > 2000">
+            {{ motivationLength }} / 2000
+          </div>
+          <span class="error-text"
+            *ngIf="applicationForm.get('motivation')?.invalid && applicationForm.get('motivation')?.touched">
+            Motivation must be between 50 and 2000 characters.
+          </span>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="isSaving">
+          {{ isSaving ? 'Submitting...' : 'Submit application' }}
+        </button>
+      </div>
+    </form>
   </div>
 
   <div class="no-profile" *ngIf="state === 'no-profile'">
-    <h1>Tutor Profile</h1>
-    <p>You do not have a tutor profile yet.</p>
+    <h1>Create Your Tutor Profile</h1>
+    <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+    <p>Your application has been received. Complete your tutor profile to start accepting students.</p>
     <button class="btn-primary" (click)="startCreate()">Create profile</button>
   </div>
 

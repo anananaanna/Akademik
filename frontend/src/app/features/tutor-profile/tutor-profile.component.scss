@@ -22,6 +22,46 @@
   }
 }
 
+.no-application {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 0;
+
+  h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+}
+
+.page-subtitle {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+}
+
+.application-form {
+  margin-top: var(--spacing-lg);
+}
+
+.char-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: right;
+  margin-top: var(--spacing-xs);
+
+  &.error {
+    color: var(--color-error);
+  }
+}
+
+.error-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--spacing-xs);
+}
+
 .profile-header {
   display: flex;
   align-items: flex-start;

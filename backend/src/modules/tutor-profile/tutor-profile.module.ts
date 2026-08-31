@@ -6,10 +6,11 @@ import { TutorProfileController } from './tutor-profile.controller';
 import { AuthModule } from '../auth/auth.module';
 import { SubjectsModule } from '../subjects/subjects.module';
 import { Subject } from '../subjects/entities/subject.entity';
+import { TutorApplication } from '../tutor-application/entities/tutor-application.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TutorProfile, Subject]),
+    TypeOrmModule.forFeature([TutorProfile, Subject, TutorApplication]),
     AuthModule,
     SubjectsModule,
   ],

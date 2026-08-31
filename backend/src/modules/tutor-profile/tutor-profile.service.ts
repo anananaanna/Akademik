@@ -3,11 +3,13 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { TutorProfile } from './entities/tutor-profile.entity';
 import { Subject } from '../subjects/entities/subject.entity';
+import { TutorApplication } from '../tutor-application/entities/tutor-application.entity';
 import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
 import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
 
@@ -19,14 +21,22 @@ export class TutorProfileService {
 
     @InjectRepository(Subject)
     private readonly subjectRepository: Repository<Subject>,
+
+    @InjectRepository(TutorApplication)
+    private readonly tutorApplicationRepository: Repository<TutorApplication>,
   ) {}
 
-  // ─── Create ───────────────────────────────────────────────────────────────
+  async create(userId: string, dto: CreateTutorProfileDto): Promise<TutorProfile> {
+    const application = await this.tutorApplicationRepository.findOne({
+      where: { userId },
+    });
 
-  async create(
-    userId: string,
-    dto: CreateTutorProfileDto,
-  ): Promise<TutorProfile> {
+    if (!application) {
+      throw new ForbiddenException(
+        'You must submit a tutor application before creating a tutor profile',
+      );
+    }
+
     const existing = await this.tutorProfileRepository.findOne({
       where: { userId },
     });
@@ -35,15 +45,9 @@ export class TutorProfileService {
       throw new ConflictException('You already have a tutor profile');
     }
 
-    const profile = this.tutorProfileRepository.create({
-      ...dto,
-      userId,
-    });
-
+    const profile = this.tutorProfileRepository.create({ ...dto, userId });
     return this.tutorProfileRepository.save(profile);
   }
-
-  // ─── Find by id (public) ─────────────────────────────────────────────────
 
   async findById(id: string): Promise<TutorProfile> {
     const profile = await this.tutorProfileRepository.findOne({
@@ -58,8 +62,6 @@ export class TutorProfileService {
     return profile;
   }
 
-  // ─── Find by userId ───────────────────────────────────────────────────────
-
   async findByUserId(userId: string): Promise<TutorProfile> {
     const profile = await this.tutorProfileRepository.findOne({
       where: { userId },
@@ -73,32 +75,16 @@ export class TutorProfileService {
     return profile;
   }
 
-  // ─── Update profile fields ────────────────────────────────────────────────
-
-  async update(
-    userId: string,
-    dto: UpdateTutorProfileDto,
-  ): Promise<TutorProfile> {
+  async update(userId: string, dto: UpdateTutorProfileDto): Promise<TutorProfile> {
     const profile = await this.findByUserId(userId);
-
-    // Merge only the fields the caller sent — undefined fields are untouched
     Object.assign(profile, dto);
-
     return this.tutorProfileRepository.save(profile);
   }
 
-  // ─── Update subjects ──────────────────────────────────────────────────────
-
-  async updateSubjects(
-    userId: string,
-    subjectIds: string[],
-  ): Promise<TutorProfile> {
+  async updateSubjects(userId: string, subjectIds: string[]): Promise<TutorProfile> {
     const profile = await this.findByUserId(userId);
 
-    // Verify every submitted ID actually exists in the subjects table
-    const subjects = await this.subjectRepository.findBy({
-      id: In(subjectIds),
-    });
+    const subjects = await this.subjectRepository.findBy({ id: In(subjectIds) });
 
     if (subjects.length !== subjectIds.length) {
       const foundIds = subjects.map((s) => s.id);
@@ -108,10 +94,7 @@ export class TutorProfileService {
       );
     }
 
-    // Replace the entire subjects list — this is a full replace, not an append.
-    // The caller sends the complete desired set of subjects each time.
     profile.subjects = subjects;
-
     return this.tutorProfileRepository.save(profile);
   }
 }

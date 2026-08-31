@@ -4,9 +4,10 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap, catchError, EMPTY } from 'rxjs';
 import { TutorProfileService, TutorProfile } from '../../core/services/tutor-profile.service';
+import { TutorApplicationService } from '../../core/services/tutor-application.service';
 import { AdvertisementService } from '../../core/services/advertisement.service';
 
-type PageState = 'loading' | 'no-profile' | 'view' | 'edit' | 'create';
+type PageState = 'loading' | 'no-application' | 'no-profile' | 'view' | 'edit' | 'create';
 
 @Component({
   selector: 'app-tutor-profile',
@@ -25,15 +26,18 @@ export class TutorProfileComponent implements OnInit, OnDestroy {
   successMessage = '';
 
   profileForm: FormGroup;
+  applicationForm: FormGroup;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private tutorProfileService: TutorProfileService,
+    private tutorApplicationService: TutorApplicationService,
     private advertisementService: AdvertisementService,
     private fb: FormBuilder,
   ) {
-    this.profileForm = this.buildForm();
+    this.profileForm = this.buildProfileForm();
+    this.applicationForm = this.buildApplicationForm();
   }
 
   ngOnInit(): void {
@@ -51,7 +55,7 @@ export class TutorProfileComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private buildForm(): FormGroup {
+  private buildProfileForm(): FormGroup {
     return this.fb.group({
       bio: [''],
       hourlyRate: [null, [Validators.min(0)]],
@@ -64,21 +68,41 @@ export class TutorProfileComponent implements OnInit, OnDestroy {
     });
   }
 
+  private buildApplicationForm(): FormGroup {
+    return this.fb.group({
+      motivation: ['', [
+        Validators.required,
+        Validators.minLength(50),
+        Validators.maxLength(2000),
+      ]],
+    });
+  }
+
   private loadProfile(): void {
     this.state = 'loading';
-    this.tutorProfileService.getMyProfile()
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError(() => {
-          this.state = 'no-profile';
-          return EMPTY;
-        }),
-      )
-      .subscribe(profile => {
-        this.profile = profile;
-        this.selectedSubjectIds = profile.subjects.map(s => s.id);
-        this.state = 'view';
-      });
+    this.tutorProfileService.getMyProfile().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => {
+        this.checkApplication();
+        return EMPTY;
+      }),
+    ).subscribe(profile => {
+      this.profile = profile;
+      this.selectedSubjectIds = profile.subjects.map(s => s.id);
+      this.state = 'view';
+    });
+  }
+
+  private checkApplication(): void {
+    this.tutorApplicationService.getMyApplication().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => {
+        this.state = 'no-application';
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.state = 'no-profile';
+    });
   }
 
   private patchForm(): void {
@@ -95,8 +119,33 @@ export class TutorProfileComponent implements OnInit, OnDestroy {
     });
   }
 
+  submitApplication(): void {
+    if (this.applicationForm.invalid) {
+      this.applicationForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving = true;
+    this.errorMessage = '';
+
+    this.tutorApplicationService.submitApplication(
+      this.applicationForm.value.motivation
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.state = 'no-profile';
+        this.successMessage = 'Application submitted. You can now create your tutor profile.';
+      },
+      error: err => {
+        this.isSaving = false;
+        this.errorMessage = err?.error?.message ?? 'Failed to submit application.';
+      },
+    });
+  }
+
   startCreate(): void {
     this.profileForm.reset({ isAvailable: true });
+    this.successMessage = '';
     this.state = 'create';
   }
 
@@ -172,8 +221,7 @@ export class TutorProfileComponent implements OnInit, OnDestroy {
     return payload;
   }
 
-  formatLevel(level: string | null): string {
-    if (!level) return '';
-    return level.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+  get motivationLength(): number {
+    return this.applicationForm.value.motivation?.length ?? 0;
   }
 }

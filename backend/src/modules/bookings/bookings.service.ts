@@ -29,12 +29,6 @@ export class BookingsService {
     private readonly tutorProfileRepository: Repository<TutorProfile>,
   ) {}
 
-  // ─── Private helpers ──────────────────────────────────────────────────────
-
-  /**
-   * Central booking lookup with relations loaded.
-   * Used by findOne, cancel, and complete to avoid repeating the same query.
-   */
   private async findBookingById(id: string): Promise<Booking> {
     const booking = await this.bookingRepository.findOne({
       where: { id },
@@ -48,17 +42,17 @@ export class BookingsService {
     return booking;
   }
 
-  // ─── Create ───────────────────────────────────────────────────────────────
-
-  /**
-   * Structured for easy transaction wrapping:
-   * All reads happen first, all validation runs next,
-   * then writes are grouped at the end.
-   * To wrap in a transaction later, inject DataSource and use
-   * queryRunner.manager instead of the injected repositories.
-   */
   async create(studentId: string, dto: CreateBookingDto): Promise<Booking> {
-    // ── Step 1: Load all required entities ───────────────────────────────────
+
+    const callerTutorProfile = await this.tutorProfileRepository.findOne({
+      where: { userId: studentId },
+    });
+
+    if (callerTutorProfile) {
+      throw new ForbiddenException(
+        'Tutors cannot book lessons',
+      );
+    }
 
     const advertisement = await this.advertisementRepository.findOne({
       where: { id: dto.advertisementId },
@@ -80,23 +74,18 @@ export class BookingsService {
       );
     }
 
-    // ── Step 2: Validate business rules ──────────────────────────────────────
-
-    // Rule 1 — Slot must be available
     if (timeSlot.status !== TimeSlotStatus.AVAILABLE) {
       throw new ConflictException(
         'This time slot is no longer available',
       );
     }
 
-    // Rule 2 — Slot must belong to the same tutor as the advertisement
     if (timeSlot.tutorProfileId !== advertisement.tutorProfileId) {
       throw new BadRequestException(
         'The selected time slot does not belong to the tutor of this advertisement',
       );
     }
 
-    // Rule 3 — Student cannot book their own advertisement
     const tutorProfile = await this.tutorProfileRepository.findOne({
       where: { id: advertisement.tutorProfileId },
     });
@@ -107,7 +96,6 @@ export class BookingsService {
       );
     }
 
-    // ── Step 3: Writes — booking first, then slot update ─────────────────────
 
     const booking = this.bookingRepository.create({
       studentId,
@@ -121,8 +109,6 @@ export class BookingsService {
 
     const savedBooking = await this.bookingRepository.save(booking);
 
-    // Update slot status immediately after booking is saved.
-    // Grouped here so a future transaction wrapper encloses both writes.
     await this.timeSlotRepository.update(timeSlot.id, {
       status: TimeSlotStatus.BOOKED,
     });
@@ -130,7 +116,6 @@ export class BookingsService {
     return savedBooking;
   }
 
-  // ─── Find my bookings (student) ───────────────────────────────────────────
 
   async findMyBookings(studentId: string): Promise<Booking[]> {
     return this.bookingRepository.find({
@@ -139,8 +124,6 @@ export class BookingsService {
       order: { createdAt: 'DESC' },
     });
   }
-
-  // ─── Find tutor bookings ──────────────────────────────────────────────────
 
   async findTutorBookings(userId: string): Promise<Booking[]> {
     const tutorProfile = await this.tutorProfileRepository.findOne({
@@ -160,7 +143,6 @@ export class BookingsService {
     });
   }
 
-  // ─── Find one ─────────────────────────────────────────────────────────────
 
   async findOne(id: string, userId: string): Promise<Booking> {
     const booking = await this.findBookingById(id);
@@ -181,12 +163,9 @@ export class BookingsService {
     return booking;
   }
 
-  // ─── Cancel ───────────────────────────────────────────────────────────────
-
   async cancel(id: string, userId: string): Promise<Booking> {
     const booking = await this.findBookingById(id);
 
-    // Ownership — only the student who made the booking can cancel it
     if (booking.studentId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to cancel this booking',
@@ -205,7 +184,6 @@ export class BookingsService {
       );
     }
 
-    // Writes — cancel booking then release slot
     booking.status = BookingStatus.CANCELLED;
     const savedBooking = await this.bookingRepository.save(booking);
 
@@ -216,12 +194,10 @@ export class BookingsService {
     return savedBooking;
   }
 
-  // ─── Complete ─────────────────────────────────────────────────────────────
 
   async complete(id: string, userId: string): Promise<Booking> {
     const booking = await this.findBookingById(id);
 
-    // Ownership — only the tutor can mark a session as completed
     const tutorProfile = await this.tutorProfileRepository.findOne({
       where: { userId },
     });
