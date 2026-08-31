@@ -65,6 +65,12 @@ export const routes: Routes = [
       import('./features/my-ads/my-ads.component').then((m) => m.MyAdsComponent),
   },
   {
+    path: 'my-slots',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/my-slots/my-slots.component').then((m) => m.MySlotsComponent),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard],
     loadComponent: () =>

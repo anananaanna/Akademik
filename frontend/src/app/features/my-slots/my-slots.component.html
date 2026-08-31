@@ -1,0 +1,129 @@
+<div class="my-slots-page">
+
+  <div class="slots-loading" *ngIf="state === 'loading'">
+    <p>Loading...</p>
+  </div>
+
+  <div *ngIf="state === 'list'">
+    <div class="page-header">
+      <h1>My Time Slots</h1>
+      <button class="btn-primary" (click)="startCreate()">+ New time slot</button>
+    </div>
+
+    <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <div class="slots-empty" *ngIf="slots.length === 0">
+      <p>You have no time slots yet.</p>
+      <p>Add your available times so students can book lessons with you.</p>
+    </div>
+
+    <div class="slots-list" *ngIf="slots.length > 0">
+      <div class="slot-card" *ngFor="let slot of slots" [class.past]="isPast(slot)">
+
+        <div class="slot-card-header">
+          <span class="slot-status" [class]="getStatusClass(slot.status)">
+            {{ slot.status }}
+          </span>
+          <span class="slot-duration">
+            {{ formatDuration(slot.startTime, slot.endTime) }}
+          </span>
+        </div>
+
+        <div class="slot-time">
+          <div class="slot-start">{{ formatDateTime(slot.startTime) }}</div>
+          <div class="slot-end">→ {{ formatDateTime(slot.endTime) }}</div>
+        </div>
+
+        <div class="slot-notes" *ngIf="slot.notes">
+          {{ slot.notes }}
+        </div>
+
+        <div class="slot-card-actions" *ngIf="!isPast(slot)">
+          <button
+            class="btn-cancel-slot"
+            (click)="cancelSlot(slot.id)"
+            *ngIf="canCancel(slot)"
+            [disabled]="cancellingId === slot.id"
+          >
+            {{ cancellingId === slot.id ? 'Cancelling...' : 'Cancel slot' }}
+          </button>
+          <button
+            class="btn-delete"
+            (click)="deleteSlot(slot.id)"
+            *ngIf="canDelete(slot)"
+            [disabled]="deletingId === slot.id"
+          >
+            {{ deletingId === slot.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="state === 'create'">
+    <div class="page-header">
+      <h1>New Time Slot</h1>
+    </div>
+
+    <form [formGroup]="slotForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-section">
+        <p class="form-hint">
+          Enter the date and time for your available slot.
+          Use your local time — it will be stored correctly.
+        </p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startTime">Start date and time</label>
+            <input
+              id="startTime"
+              type="datetime-local"
+              formControlName="startTime"
+              [class.input-error]="slotForm.get('startTime')?.invalid && slotForm.get('startTime')?.touched"
+            />
+            <span class="error-text"
+              *ngIf="slotForm.get('startTime')?.invalid && slotForm.get('startTime')?.touched">
+              Start time is required.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="endTime">End date and time</label>
+            <input
+              id="endTime"
+              type="datetime-local"
+              formControlName="endTime"
+              [class.input-error]="slotForm.get('endTime')?.invalid && slotForm.get('endTime')?.touched"
+            />
+            <span class="error-text"
+              *ngIf="slotForm.get('endTime')?.invalid && slotForm.get('endTime')?.touched">
+              End time is required.
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes (optional)</label>
+          <input
+            id="notes"
+            type="text"
+            formControlName="notes"
+            placeholder="e.g. Online via Zoom, In-person only..."
+          />
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelCreate()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Creating...' : 'Create time slot' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
