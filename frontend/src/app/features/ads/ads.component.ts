@@ -8,12 +8,14 @@ import {
   combineLatest,
   takeUntil,
 } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap, tap, catchError } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 import {
   AdvertisementService,
   Advertisement,
 } from '../../core/services/advertisement.service';
 import { AuthService } from '../../core/services/auth.service';
+import { TutorProfileService } from '../../core/services/tutor-profile.service';
 
 @Component({
   selector: 'app-ads',
@@ -29,6 +31,7 @@ export class AdsComponent implements OnInit, OnDestroy {
   isLoading = true;
   errorMessage = '';
   isLoggedIn = false;
+  isTutor = false;
 
   selectedSubject = '';
   selectedLevel = '';
@@ -44,7 +47,6 @@ export class AdsComponent implements OnInit, OnDestroy {
   ];
 
   private destroy$ = new Subject<void>();
-
   private subjectFilter$ = new BehaviorSubject<string>('');
   private levelFilter$ = new BehaviorSubject<string>('');
   private searchFilter$ = new BehaviorSubject<string>('');
@@ -52,6 +54,7 @@ export class AdsComponent implements OnInit, OnDestroy {
   constructor(
     private advertisementService: AdvertisementService,
     private authService: AuthService,
+    private tutorProfileService: TutorProfileService,
     private router: Router,
   ) {}
 
@@ -60,13 +63,24 @@ export class AdsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         this.isLoggedIn = user !== null;
+        if (user) {
+          this.tutorProfileService.getMyProfile().pipe(
+            catchError(() => {
+              this.isTutor = false;
+              return EMPTY;
+            }),
+          ).subscribe(() => {
+            this.isTutor = true;
+          });
+        } else {
+          this.isTutor = false;
+        }
       });
 
     this.advertisementService.getAll().pipe(
       tap(ads => {
         this.advertisements = ads;
         this.isLoading = false;
-
         this.subjects = ads
           .map(ad => ad.subject?.name)
           .filter((name, index, self) =>
@@ -82,12 +96,8 @@ export class AdsComponent implements OnInit, OnDestroy {
       ),
       map(([subject, level, search]) =>
         this.advertisements.filter(ad => {
-          const matchesSubject = subject
-            ? ad.subject?.name === subject
-            : true;
-          const matchesLevel = level
-            ? ad.level === level
-            : true;
+          const matchesSubject = subject ? ad.subject?.name === subject : true;
+          const matchesLevel = level ? ad.level === level : true;
           const matchesSearch = search
             ? ad.title.toLowerCase().includes(search.toLowerCase()) ||
               ad.description.toLowerCase().includes(search.toLowerCase())
@@ -139,7 +149,7 @@ export class AdsComponent implements OnInit, OnDestroy {
       return;
     }
     this.router.navigate(['/booking'], {
-      queryParams: { advertisementId: ad.id }
+      queryParams: { advertisementId: ad.id },
     });
   }
 
@@ -154,7 +164,6 @@ export class AdsComponent implements OnInit, OnDestroy {
   get totalCount(): number {
     return this.filteredAds.length;
   }
-
 
   get averageRate(): number {
     if (this.filteredAds.length === 0) return 0;

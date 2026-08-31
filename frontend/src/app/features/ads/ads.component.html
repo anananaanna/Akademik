@@ -95,7 +95,7 @@
 
       <div class="ad-card-footer">
         <span class="ad-rate">{{ ad.hourlyRate }}€<span class="ad-rate-unit">/hr</span></span>
-        <button class="btn-book" (click)="bookAd(ad)">
+        <button class="btn-book" (click)="bookAd(ad)" *ngIf="!isTutor">
           {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
         </button>
       </div>
