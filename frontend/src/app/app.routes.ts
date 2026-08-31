@@ -59,6 +59,12 @@ export const routes: Routes = [
       import('./features/tutor-profile/tutor-profile.component').then((m) => m.TutorProfileComponent),
   },
   {
+    path: 'my-ads',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/my-ads/my-ads.component').then((m) => m.MyAdsComponent),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard],
     loadComponent: () =>

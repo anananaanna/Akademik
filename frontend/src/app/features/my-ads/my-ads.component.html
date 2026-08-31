@@ -1,0 +1,156 @@
+<div class="my-ads-page">
+
+  <div class="ads-loading" *ngIf="state === 'loading'">
+    <p>Loading...</p>
+  </div>
+
+  <div *ngIf="state === 'list'">
+    <div class="page-header">
+      <h1>My Advertisements</h1>
+      <button class="btn-primary" (click)="startCreate()">+ New advertisement</button>
+    </div>
+
+    <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <div class="ads-empty" *ngIf="advertisements.length === 0">
+      <p>You have no advertisements yet.</p>
+      <p>Create one to start accepting students.</p>
+    </div>
+
+    <div class="ads-list" *ngIf="advertisements.length > 0">
+      <div class="ad-card" *ngFor="let ad of advertisements">
+
+        <div class="ad-card-header">
+          <div class="ad-badges">
+            <span class="badge-subject">{{ ad.subject.name }}</span>
+            <span class="badge-level" *ngIf="ad.level">{{ formatLevel(ad.level) }}</span>
+            <span class="badge-status" [class.inactive]="ad.status === 'INACTIVE'">
+              {{ ad.status }}
+            </span>
+          </div>
+          <span class="ad-rate">{{ ad.hourlyRate }}€/hr</span>
+        </div>
+
+        <h2 class="ad-title">{{ ad.title }}</h2>
+        <p class="ad-description">{{ ad.description }}</p>
+
+        <div class="ad-card-actions">
+          <button class="btn-edit" (click)="startEdit(ad)">Edit</button>
+          <button
+            class="btn-delete"
+            (click)="deleteAd(ad.id)"
+            [disabled]="deletingId === ad.id"
+          >
+            {{ deletingId === ad.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="state === 'create' || state === 'edit'">
+    <div class="page-header">
+      <h1>{{ state === 'create' ? 'New Advertisement' : 'Edit Advertisement' }}</h1>
+    </div>
+
+    <form [formGroup]="adForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-section">
+
+        <div class="form-group">
+          <label for="subjectId">Subject</label>
+          <select id="subjectId" formControlName="subjectId"
+            [class.input-error]="adForm.get('subjectId')?.invalid && adForm.get('subjectId')?.touched">
+            <option value="">Select a subject</option>
+            <option *ngFor="let subject of subjects" [value]="subject.id">
+              {{ subject.name }}
+            </option>
+          </select>
+          <span class="error-text"
+            *ngIf="adForm.get('subjectId')?.invalid && adForm.get('subjectId')?.touched">
+            Please select a subject.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input
+            id="title"
+            type="text"
+            formControlName="title"
+            placeholder="e.g. Expert Math Tutoring for High School Students"
+            [class.input-error]="adForm.get('title')?.invalid && adForm.get('title')?.touched"
+          />
+          <span class="error-text"
+            *ngIf="adForm.get('title')?.invalid && adForm.get('title')?.touched">
+            Title is required (max 200 characters).
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="5"
+            placeholder="Describe what you offer, your teaching style, who this is for..."
+            [class.input-error]="adForm.get('description')?.invalid && adForm.get('description')?.touched"
+          ></textarea>
+          <span class="error-text"
+            *ngIf="adForm.get('description')?.invalid && adForm.get('description')?.touched">
+            Description is required.
+          </span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="hourlyRate">Hourly rate (€)</label>
+            <input
+              id="hourlyRate"
+              type="number"
+              formControlName="hourlyRate"
+              min="0"
+              placeholder="0"
+              [class.input-error]="adForm.get('hourlyRate')?.invalid && adForm.get('hourlyRate')?.touched"
+            />
+            <span class="error-text"
+              *ngIf="adForm.get('hourlyRate')?.invalid && adForm.get('hourlyRate')?.touched">
+              A valid hourly rate is required.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="level">Level</label>
+            <select id="level" formControlName="level">
+              <option value="">All levels</option>
+              <option *ngFor="let level of levels" [value]="level.value">
+                {{ level.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" formControlName="status">
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelForm()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : state === 'create' ? 'Create advertisement' : 'Save changes' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
