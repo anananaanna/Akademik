@@ -54,6 +54,63 @@
         </button>
       </div>
 
+      <div class="review-section" *ngIf="booking.status === 'COMPLETED'">
+
+        <div class="existing-review" *ngIf="getReviewForBooking(booking.id) as review">
+          <div class="review-header">
+            <span class="review-stars">{{ getRatingStars(review.rating) }}</span>
+            <span class="review-edited" *ngIf="review.isEdited">(edited)</span>
+          </div>
+          <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
+          <button
+            class="btn-delete-review"
+            (click)="deleteReview(review.id)"
+            [disabled]="deletingReviewId === review.id"
+          >
+            {{ deletingReviewId === review.id ? 'Deleting...' : 'Delete review' }}
+          </button>
+        </div>
+
+        <div class="no-review" *ngIf="canReview(booking) && reviewingBookingId !== booking.id">
+          <button class="btn-leave-review" (click)="startReview(booking.id)">
+            Leave a review
+          </button>
+        </div>
+
+        <div class="review-form" *ngIf="reviewingBookingId === booking.id">
+          <form [formGroup]="reviewForm" (ngSubmit)="submitReview(booking.id)" novalidate>
+            <div class="rating-group">
+              <label>Rating</label>
+              <div class="rating-selector">
+                <button
+                  type="button"
+                  class="star-btn"
+                  *ngFor="let star of [1,2,3,4,5]"
+                  (click)="reviewForm.patchValue({ rating: star })"
+                  [class.active]="reviewForm.value.rating >= star"
+                >★</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="comment">Comment (optional)</label>
+              <textarea
+                id="comment"
+                formControlName="comment"
+                rows="3"
+                placeholder="Share your experience..."
+              ></textarea>
+            </div>
+            <div class="review-form-actions">
+              <button type="button" class="btn-cancel-review" (click)="cancelReview()">Cancel</button>
+              <button type="submit" class="btn-submit-review" [disabled]="submittingReview">
+                {{ submittingReview ? 'Submitting...' : 'Submit review' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </div>

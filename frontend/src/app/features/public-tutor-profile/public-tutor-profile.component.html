@@ -58,7 +58,7 @@
         </div>
       </div>
 
-      <div class="profile-section">
+            <div class="profile-section">
         <h2>Available lessons</h2>
 
         <div class="no-ads" *ngIf="advertisements.length === 0">
@@ -83,6 +83,30 @@
                 {{ isLoggedIn ? 'Book lesson' : 'Login to book' }}
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>
+          Reviews
+          <span class="reviews-summary" *ngIf="reviews.length > 0">
+            {{ averageRating }} ★ · {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }}
+          </span>
+        </h2>
+
+        <div class="no-reviews" *ngIf="reviews.length === 0">
+          <p>No reviews yet.</p>
+        </div>
+
+        <div class="reviews-list" *ngIf="reviews.length > 0">
+          <div class="review-card" *ngFor="let review of reviews">
+            <div class="review-card-header">
+              <span class="review-stars">{{ getRatingStars(review.rating) }}</span>
+              <span class="review-edited" *ngIf="review.isEdited">(edited)</span>
+            </div>
+            <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
+            <span class="review-date">{{ review.createdAt | date:'mediumDate' }}</span>
           </div>
         </div>
       </div>

@@ -71,6 +71,12 @@ export const routes: Routes = [
       import('./features/my-slots/my-slots.component').then((m) => m.MySlotsComponent),
   },
   {
+    path: 'my-reviews',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/my-reviews/my-reviews.component').then((m) => m.MyReviewsComponent),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard],
     loadComponent: () =>

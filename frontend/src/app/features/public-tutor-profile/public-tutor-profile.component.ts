@@ -5,6 +5,7 @@ import { Subject, forkJoin, EMPTY } from 'rxjs';
 import { takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { TutorProfileService, TutorProfile } from '../../core/services/tutor-profile.service';
 import { AdvertisementService, Advertisement } from '../../core/services/advertisement.service';
+import { ReviewService, Review } from '../../core/services/review.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -17,6 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class PublicTutorProfileComponent implements OnInit, OnDestroy {
   profile: TutorProfile | null = null;
   advertisements: Advertisement[] = [];
+  reviews: Review[] = [];
   isLoading = true;
   errorMessage = '';
   isLoggedIn = false;
@@ -29,6 +31,7 @@ export class PublicTutorProfileComponent implements OnInit, OnDestroy {
     private router: Router,
     private tutorProfileService: TutorProfileService,
     private advertisementService: AdvertisementService,
+    private reviewService: ReviewService,
     private authService: AuthService,
   ) {}
 
@@ -58,14 +61,16 @@ export class PublicTutorProfileComponent implements OnInit, OnDestroy {
         return forkJoin({
           profile: this.tutorProfileService.getById(id),
           ads: this.advertisementService.getAll(),
+          reviews: this.reviewService.getByTutorProfile(id),
         });
       }),
     ).subscribe({
-      next: ({ profile, ads }) => {
+      next: ({ profile, ads, reviews }) => {
         this.profile = profile;
         this.advertisements = ads.filter(
           ad => ad.tutorProfileId === profile.id && ad.status === 'ACTIVE'
         );
+        this.reviews = reviews;
         this.isLoading = false;
       },
       error: () => {
@@ -93,5 +98,15 @@ export class PublicTutorProfileComponent implements OnInit, OnDestroy {
   formatLevel(level: string | null): string {
     if (!level) return '';
     return level.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+  }
+
+  getRatingStars(rating: number): string {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  get averageRating(): number {
+    if (this.reviews.length === 0) return 0;
+    const total = this.reviews.reduce((sum, r) => sum + r.rating, 0);
+    return Math.round((total / this.reviews.length) * 10) / 10;
   }
 }
