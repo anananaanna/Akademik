@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, catchError, EMPTY } from 'rxjs';
 import { BookingService, Booking } from '../../core/services/booking.service';
 import { ReviewService, Review } from '../../core/services/review.service';
 import { MaterialService, Material } from '../../core/services/material.service';
+import { ProgressService, Progress } from '../../core/services/progress.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -29,6 +30,10 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
   expandedMaterialsFor = '';
   loadingMaterialsFor = '';
 
+  progressMap: Record<string, Progress | null> = {};
+  expandedProgressFor = '';
+  loadingProgressFor = '';
+
   reviewForm: FormGroup;
 
   private destroy$ = new Subject<void>();
@@ -37,6 +42,7 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
     private bookingService: BookingService,
     private reviewService: ReviewService,
     private materialService: MaterialService,
+    private progressService: ProgressService,
     private fb: FormBuilder,
   ) {
     this.reviewForm = this.fb.group({
@@ -89,9 +95,7 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
       this.expandedMaterialsFor = '';
       return;
     }
-
     this.expandedMaterialsFor = bookingId;
-
     if (!this.materialsMap[bookingId]) {
       this.loadingMaterialsFor = bookingId;
       this.materialService.getByBooking(bookingId)
@@ -106,6 +110,28 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
             this.loadingMaterialsFor = '';
           },
         });
+    }
+  }
+
+  toggleProgress(bookingId: string): void {
+    if (this.expandedProgressFor === bookingId) {
+      this.expandedProgressFor = '';
+      return;
+    }
+    this.expandedProgressFor = bookingId;
+    if (!(bookingId in this.progressMap)) {
+      this.loadingProgressFor = bookingId;
+      this.progressService.getByBooking(bookingId).pipe(
+        takeUntil(this.destroy$),
+        catchError(() => {
+          this.progressMap[bookingId] = null;
+          this.loadingProgressFor = '';
+          return EMPTY;
+        }),
+      ).subscribe(progress => {
+        this.progressMap[bookingId] = progress;
+        this.loadingProgressFor = '';
+      });
     }
   }
 
@@ -130,17 +156,14 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
 
   submitReview(bookingId: string): void {
     if (this.reviewForm.invalid) return;
-
     this.submittingReview = true;
     this.errorMessage = '';
-
     const { rating, comment } = this.reviewForm.value;
     const payload = {
       bookingId,
       rating: Number(rating),
       ...(comment?.trim() ? { comment: comment.trim() } : {}),
     };
-
     this.reviewService.create(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -190,12 +213,8 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
 
   formatDateTime(dateStr: string): string {
     return new Date(dateStr).toLocaleString('en-GB', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      weekday: 'short', day: '2-digit', month: 'short',
+      year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   }
 

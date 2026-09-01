@@ -87,6 +87,39 @@
             </div>
           </div>
         </div>
+            </div>
+
+      <div class="progress-section-student" *ngIf="booking.status === 'COMPLETED'">
+        <div class="progress-toggle-bar">
+          <button class="btn-progress-toggle" (click)="toggleProgress(booking.id)">
+            {{ expandedProgressFor === booking.id ? 'Hide session log' : 'View session log' }}
+          </button>
+        </div>
+
+        <div *ngIf="expandedProgressFor === booking.id">
+          <div class="progress-loading" *ngIf="loadingProgressFor === booking.id">
+            <p>Loading...</p>
+          </div>
+          <div *ngIf="loadingProgressFor !== booking.id">
+            <div class="no-progress" *ngIf="!progressMap[booking.id]">
+              <p>No session log has been written yet.</p>
+            </div>
+            <div class="progress-view" *ngIf="progressMap[booking.id]">
+              <div class="progress-field">
+                <span class="progress-label">Topics covered</span>
+                <p>{{ progressMap[booking.id]?.topicsCovered }}</p>
+              </div>
+              <div class="progress-field" *ngIf="progressMap[booking.id]?.homeworkAssigned">
+                <span class="progress-label">Homework assigned</span>
+                <p>{{ progressMap[booking.id]?.homeworkAssigned }}</p>
+              </div>
+              <div class="progress-field" *ngIf="progressMap[booking.id]?.tutorNotes">
+                <span class="progress-label">Tutor notes</span>
+                <p>{{ progressMap[booking.id]?.tutorNotes }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="review-section" *ngIf="booking.status === 'COMPLETED'">

@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, catchError, EMPTY } from 'rxjs';
 import { BookingService, Booking } from '../../core/services/booking.service';
 import { MaterialService, Material } from '../../core/services/material.service';
+import { ProgressService, Progress } from '../../core/services/progress.service';
 
 @Component({
   selector: 'app-tutor-bookings',
@@ -27,16 +28,25 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
   deletingMaterialId = '';
   isSubmittingMaterial = false;
 
+  progressMap: Record<string, Progress | null> = {};
+  loadingProgressFor = '';
+  expandedProgressId = '';
+  editingProgressId = '';
+  isSubmittingProgress = false;
+
   materialForm: FormGroup;
+  progressForm: FormGroup;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private bookingService: BookingService,
     private materialService: MaterialService,
+    private progressService: ProgressService,
     private fb: FormBuilder,
   ) {
     this.materialForm = this.buildMaterialForm();
+    this.progressForm = this.buildProgressForm();
   }
 
   ngOnInit(): void {
@@ -54,6 +64,14 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
       fileUrl: ['', [Validators.required, Validators.pattern('https?://.+')]],
       description: [''],
       fileType: [''],
+    });
+  }
+
+  private buildProgressForm(): FormGroup {
+    return this.fb.group({
+      topicsCovered: ['', Validators.required],
+      homeworkAssigned: [''],
+      tutorNotes: [''],
     });
   }
 
@@ -94,10 +112,8 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
       this.addingMaterialFor = '';
       return;
     }
-
     this.expandedBookingId = bookingId;
     this.addingMaterialFor = '';
-
     if (!this.materialsMap[bookingId]) {
       this.loadingMaterialsFor = bookingId;
       this.materialService.getByBooking(bookingId)
@@ -131,10 +147,8 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
       this.materialForm.markAllAsTouched();
       return;
     }
-
     this.isSubmittingMaterial = true;
     this.errorMessage = '';
-
     const { title, fileUrl, description, fileType } = this.materialForm.value;
     const payload = {
       title,
@@ -142,15 +156,11 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
       ...(description?.trim() ? { description: description.trim() } : {}),
       ...(fileType?.trim() ? { fileType: fileType.trim() } : {}),
     };
-
     this.materialService.create(bookingId, payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: material => {
-          this.materialsMap[bookingId] = [
-            ...(this.materialsMap[bookingId] ?? []),
-            material,
-          ];
+          this.materialsMap[bookingId] = [...(this.materialsMap[bookingId] ?? []), material];
           this.isSubmittingMaterial = false;
           this.addingMaterialFor = '';
         },
@@ -167,8 +177,7 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.materialsMap[bookingId] = this.materialsMap[bookingId]
-            .filter(m => m.id !== materialId);
+          this.materialsMap[bookingId] = this.materialsMap[bookingId].filter(m => m.id !== materialId);
           this.deletingMaterialId = '';
         },
         error: err => {
@@ -176,6 +185,98 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
           this.errorMessage = err?.error?.message ?? 'Failed to delete material.';
         },
       });
+  }
+
+  toggleProgress(bookingId: string): void {
+    if (this.expandedProgressId === bookingId) {
+      this.expandedProgressId = '';
+      this.editingProgressId = '';
+      return;
+    }
+    this.expandedProgressId = bookingId;
+    this.editingProgressId = '';
+    if (!(bookingId in this.progressMap)) {
+      this.loadingProgressFor = bookingId;
+      this.progressService.getByBooking(bookingId).pipe(
+        takeUntil(this.destroy$),
+        catchError(() => {
+          this.progressMap[bookingId] = null;
+          this.loadingProgressFor = '';
+          return EMPTY;
+        }),
+      ).subscribe(progress => {
+        this.progressMap[bookingId] = progress;
+        this.loadingProgressFor = '';
+      });
+    }
+  }
+
+  startEditProgress(bookingId: string): void {
+    const existing = this.progressMap[bookingId];
+    this.progressForm.reset({
+      topicsCovered: existing?.topicsCovered ?? '',
+      homeworkAssigned: existing?.homeworkAssigned ?? '',
+      tutorNotes: existing?.tutorNotes ?? '',
+    });
+    this.editingProgressId = bookingId;
+    this.errorMessage = '';
+  }
+
+  cancelEditProgress(): void {
+    this.editingProgressId = '';
+    this.errorMessage = '';
+  }
+
+  submitProgress(bookingId: string): void {
+    if (this.progressForm.invalid) {
+      this.progressForm.markAllAsTouched();
+      return;
+    }
+    this.isSubmittingProgress = true;
+    this.errorMessage = '';
+    const { topicsCovered, homeworkAssigned, tutorNotes } = this.progressForm.value;
+    const existing = this.progressMap[bookingId];
+
+    if (existing) {
+      const payload = {
+        topicsCovered,
+        ...(homeworkAssigned?.trim() ? { homeworkAssigned: homeworkAssigned.trim() } : {}),
+        ...(tutorNotes?.trim() ? { tutorNotes: tutorNotes.trim() } : {}),
+      };
+      this.progressService.update(existing.id, payload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: updated => {
+            this.progressMap[bookingId] = updated;
+            this.isSubmittingProgress = false;
+            this.editingProgressId = '';
+          },
+          error: err => {
+            this.isSubmittingProgress = false;
+            this.errorMessage = err?.error?.message ?? 'Failed to update progress.';
+          },
+        });
+    } else {
+      const payload = {
+        bookingId,
+        topicsCovered,
+        ...(homeworkAssigned?.trim() ? { homeworkAssigned: homeworkAssigned.trim() } : {}),
+        ...(tutorNotes?.trim() ? { tutorNotes: tutorNotes.trim() } : {}),
+      };
+      this.progressService.create(payload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: created => {
+            this.progressMap[bookingId] = created;
+            this.isSubmittingProgress = false;
+            this.editingProgressId = '';
+          },
+          error: err => {
+            this.isSubmittingProgress = false;
+            this.errorMessage = err?.error?.message ?? 'Failed to create progress entry.';
+          },
+        });
+    }
   }
 
   canComplete(booking: Booking): boolean {
@@ -186,14 +287,14 @@ export class TutorBookingsComponent implements OnInit, OnDestroy {
     return booking.status !== 'CANCELLED';
   }
 
+  isCompleted(booking: Booking): boolean {
+    return booking.status === 'COMPLETED';
+  }
+
   formatDateTime(dateStr: string): string {
     return new Date(dateStr).toLocaleString('en-GB', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      weekday: 'short', day: '2-digit', month: 'short',
+      year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   }
 

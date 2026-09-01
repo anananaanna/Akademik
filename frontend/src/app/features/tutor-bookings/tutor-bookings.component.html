@@ -65,7 +65,6 @@
       </div>
 
       <div class="materials-section" *ngIf="expandedBookingId === booking.id">
-
         <div class="materials-loading" *ngIf="loadingMaterialsFor === booking.id">
           <p>Loading materials...</p>
         </div>
@@ -145,7 +144,85 @@
             + Add material
           </button>
         </div>
+      </div>
 
+      <div class="progress-section-tutor" *ngIf="isCompleted(booking)">
+        <div class="progress-toggle-bar">
+          <button class="btn-progress" (click)="toggleProgress(booking.id)">
+            {{ expandedProgressId === booking.id ? 'Hide session log' : 'Session log' }}
+          </button>
+        </div>
+
+        <div *ngIf="expandedProgressId === booking.id">
+          <div class="progress-loading" *ngIf="loadingProgressFor === booking.id">
+            <p>Loading...</p>
+          </div>
+
+          <div *ngIf="loadingProgressFor !== booking.id">
+
+            <div class="progress-view"
+              *ngIf="progressMap[booking.id] && editingProgressId !== booking.id">
+              <div class="progress-field">
+                <span class="progress-label">Topics covered</span>
+                <p>{{ progressMap[booking.id]?.topicsCovered }}</p>
+              </div>
+              <div class="progress-field" *ngIf="progressMap[booking.id]?.homeworkAssigned">
+                <span class="progress-label">Homework assigned</span>
+                <p>{{ progressMap[booking.id]?.homeworkAssigned }}</p>
+              </div>
+              <div class="progress-field" *ngIf="progressMap[booking.id]?.tutorNotes">
+                <span class="progress-label">Notes</span>
+                <p>{{ progressMap[booking.id]?.tutorNotes }}</p>
+              </div>
+              <button class="btn-edit-progress" (click)="startEditProgress(booking.id)">
+                Edit session log
+              </button>
+            </div>
+
+            <div class="progress-empty"
+              *ngIf="!progressMap[booking.id] && editingProgressId !== booking.id">
+              <p>No session log yet.</p>
+              <button class="btn-edit-progress" (click)="startEditProgress(booking.id)">
+                Write session log
+              </button>
+            </div>
+
+            <div class="progress-form" *ngIf="editingProgressId === booking.id">
+              <form [formGroup]="progressForm" (ngSubmit)="submitProgress(booking.id)" novalidate>
+                <div class="form-group">
+                  <label>Topics covered</label>
+                  <textarea formControlName="topicsCovered" rows="3"
+                    placeholder="What was covered in this session..."
+                    [class.input-error]="progressForm.get('topicsCovered')?.invalid && progressForm.get('topicsCovered')?.touched">
+                  </textarea>
+                  <span class="error-text"
+                    *ngIf="progressForm.get('topicsCovered')?.invalid && progressForm.get('topicsCovered')?.touched">
+                    Topics covered is required.
+                  </span>
+                </div>
+                <div class="form-group">
+                  <label>Homework assigned (optional)</label>
+                  <textarea formControlName="homeworkAssigned" rows="2"
+                    placeholder="Exercises, readings, or tasks for next time...">
+                  </textarea>
+                </div>
+                <div class="form-group">
+                  <label>Tutor notes (optional)</label>
+                  <textarea formControlName="tutorNotes" rows="2"
+                    placeholder="Internal notes about student progress...">
+                  </textarea>
+                </div>
+                <div class="progress-form-actions">
+                  <button type="button" class="btn-secondary" (click)="cancelEditProgress()">Cancel</button>
+                  <button type="submit" class="btn-primary" [disabled]="isSubmittingProgress">
+                    {{ isSubmittingProgress ? 'Saving...' : 'Save session log' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
       </div>
 
     </div>
