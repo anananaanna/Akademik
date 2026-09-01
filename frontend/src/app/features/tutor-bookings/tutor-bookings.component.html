@@ -45,14 +45,107 @@
         <span class="notes-label">Student note:</span> {{ booking.notes }}
       </div>
 
-      <div class="booking-card-footer" *ngIf="canComplete(booking)">
+      <div class="booking-card-footer">
         <button
           class="btn-complete"
           (click)="completeBooking(booking.id)"
+          *ngIf="canComplete(booking)"
           [disabled]="completingId === booking.id"
         >
           {{ completingId === booking.id ? 'Marking...' : 'Mark as completed' }}
         </button>
+
+        <button
+          class="btn-materials"
+          (click)="toggleMaterials(booking.id)"
+          *ngIf="canAddMaterials(booking)"
+        >
+          {{ expandedBookingId === booking.id ? 'Hide materials' : 'Materials' }}
+        </button>
+      </div>
+
+      <div class="materials-section" *ngIf="expandedBookingId === booking.id">
+
+        <div class="materials-loading" *ngIf="loadingMaterialsFor === booking.id">
+          <p>Loading materials...</p>
+        </div>
+
+        <div *ngIf="loadingMaterialsFor !== booking.id">
+          <div class="materials-empty"
+            *ngIf="!materialsMap[booking.id] || materialsMap[booking.id].length === 0">
+            <p>No materials uploaded yet.</p>
+          </div>
+
+          <div class="materials-list"
+            *ngIf="materialsMap[booking.id] && materialsMap[booking.id].length > 0">
+            <div class="material-item" *ngFor="let material of materialsMap[booking.id]">
+              <div class="material-info">
+                <a [href]="material.fileUrl" target="_blank" class="material-title">
+                  {{ material.title }}
+                </a>
+                <span class="material-type" *ngIf="material.fileType">{{ material.fileType }}</span>
+              </div>
+              <p class="material-description" *ngIf="material.description">
+                {{ material.description }}
+              </p>
+              <button
+                class="btn-delete-material"
+                (click)="deleteMaterial(booking.id, material.id)"
+                [disabled]="deletingMaterialId === material.id"
+              >
+                {{ deletingMaterialId === material.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="add-material-form" *ngIf="addingMaterialFor === booking.id">
+            <form [formGroup]="materialForm" (ngSubmit)="submitMaterial(booking.id)" novalidate>
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" formControlName="title" placeholder="e.g. Algebra Worksheet"
+                  [class.input-error]="materialForm.get('title')?.invalid && materialForm.get('title')?.touched" />
+                <span class="error-text"
+                  *ngIf="materialForm.get('title')?.invalid && materialForm.get('title')?.touched">
+                  Title is required.
+                </span>
+              </div>
+              <div class="form-group">
+                <label>File URL</label>
+                <input type="url" formControlName="fileUrl" placeholder="https://example.com/file.pdf"
+                  [class.input-error]="materialForm.get('fileUrl')?.invalid && materialForm.get('fileUrl')?.touched" />
+                <span class="error-text"
+                  *ngIf="materialForm.get('fileUrl')?.invalid && materialForm.get('fileUrl')?.touched">
+                  A valid URL is required.
+                </span>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>File type (optional)</label>
+                  <input type="text" formControlName="fileType" placeholder="pdf, video, link..." />
+                </div>
+                <div class="form-group">
+                  <label>Description (optional)</label>
+                  <input type="text" formControlName="description" placeholder="Brief description..." />
+                </div>
+              </div>
+              <div class="material-form-actions">
+                <button type="button" class="btn-secondary" (click)="cancelAddMaterial()">Cancel</button>
+                <button type="submit" class="btn-primary" [disabled]="isSubmittingMaterial">
+                  {{ isSubmittingMaterial ? 'Adding...' : 'Add material' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <button
+            class="btn-add-material"
+            (click)="startAddMaterial(booking.id)"
+            *ngIf="addingMaterialFor !== booking.id"
+          >
+            + Add material
+          </button>
+        </div>
+
       </div>
 
     </div>

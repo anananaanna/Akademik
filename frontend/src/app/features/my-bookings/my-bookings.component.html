@@ -44,14 +44,49 @@
         <span>{{ booking.notes }}</span>
       </div>
 
-      <div class="booking-card-footer" *ngIf="canCancel(booking)">
+            <div class="booking-card-footer">
         <button
           class="btn-cancel"
           (click)="cancelBooking(booking.id)"
+          *ngIf="canCancel(booking)"
           [disabled]="cancellingId === booking.id"
         >
           {{ cancellingId === booking.id ? 'Cancelling...' : 'Cancel booking' }}
         </button>
+        <button
+          class="btn-materials-toggle"
+          (click)="toggleMaterials(booking.id)"
+          *ngIf="hasMaterials(booking)"
+        >
+          {{ expandedMaterialsFor === booking.id ? 'Hide materials' : 'View materials' }}
+        </button>
+      </div>
+
+      <div class="materials-section" *ngIf="expandedMaterialsFor === booking.id">
+        <div class="materials-loading" *ngIf="loadingMaterialsFor === booking.id">
+          <p>Loading materials...</p>
+        </div>
+        <div *ngIf="loadingMaterialsFor !== booking.id">
+          <div class="no-materials"
+            *ngIf="!materialsMap[booking.id] || materialsMap[booking.id].length === 0">
+            <p>No materials have been shared for this booking yet.</p>
+          </div>
+            <div class="materials-list" *ngIf="materialsMap[booking.id] && materialsMap[booking.id].length > 0">
+            <div class="material-item" *ngFor="let material of materialsMap[booking.id]">
+              <div class="material-info">
+                <a [href]="material.fileUrl" target="_blank" class="material-title">
+                  {{ material.title }}
+                </a>
+                <span class="material-type" *ngIf="material.fileType">
+                  {{ material.fileType }}
+                </span>
+              </div>
+              <p class="material-description" *ngIf="material.description">
+                {{ material.description }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="review-section" *ngIf="booking.status === 'COMPLETED'">

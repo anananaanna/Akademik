@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BookingService, Booking } from '../../core/services/booking.service';
 import { ReviewService, Review } from '../../core/services/review.service';
+import { MaterialService, Material } from '../../core/services/material.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -24,6 +25,10 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
   submittingReview = false;
   deletingReviewId = '';
 
+  materialsMap: Record<string, Material[]> = {};
+  expandedMaterialsFor = '';
+  loadingMaterialsFor = '';
+
   reviewForm: FormGroup;
 
   private destroy$ = new Subject<void>();
@@ -31,6 +36,7 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
   constructor(
     private bookingService: BookingService,
     private reviewService: ReviewService,
+    private materialService: MaterialService,
     private fb: FormBuilder,
   ) {
     this.reviewForm = this.fb.group({
@@ -76,6 +82,31 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         },
       });
+  }
+
+  toggleMaterials(bookingId: string): void {
+    if (this.expandedMaterialsFor === bookingId) {
+      this.expandedMaterialsFor = '';
+      return;
+    }
+
+    this.expandedMaterialsFor = bookingId;
+
+    if (!this.materialsMap[bookingId]) {
+      this.loadingMaterialsFor = bookingId;
+      this.materialService.getByBooking(bookingId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: materials => {
+            this.materialsMap[bookingId] = materials;
+            this.loadingMaterialsFor = '';
+          },
+          error: () => {
+            this.materialsMap[bookingId] = [];
+            this.loadingMaterialsFor = '';
+          },
+        });
+    }
   }
 
   getReviewForBooking(bookingId: string): Review | undefined {
@@ -175,6 +206,10 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
 
   canCancel(booking: Booking): boolean {
     return booking.status === 'CONFIRMED';
+  }
+
+  hasMaterials(booking: Booking): boolean {
+    return booking.status !== 'CANCELLED';
   }
 
   getStatusClass(status: string): string {
