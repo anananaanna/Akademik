@@ -3,7 +3,11 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AuthService, AuthUser } from './core/services/auth.service';
+import { Store } from '@ngrx/store';
+import { AppState } from './store/app.state';
+import * as AuthActions from './store/auth/auth.actions';
+import { selectCurrentUser, selectIsLoggedIn, selectIsAdmin } from './store/auth/auth.selectors';
+import { TokenStorageService } from './core/services/token-storage.service';
 
 @Component({
   selector: 'app-root',
@@ -13,19 +17,46 @@ import { AuthService, AuthUser } from './core/services/auth.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit, OnDestroy {
-  currentUser: AuthUser | null = null;
+  isLoggedIn$ = this.store.select(selectIsLoggedIn);
+  isAdmin$ = this.store.select(selectIsAdmin);
+  currentUser$ = this.store.select(selectCurrentUser);
+
+  isLoggedIn = false;
+  isAdmin = false;
+  displayName = '';
+
   private destroy$ = new Subject<void>();
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private store: Store<AppState>,
+    private tokenStorage: TokenStorageService,
+  ) {}
 
   ngOnInit(): void {
-    // takeUntil(destroy$) satisfies the professor's RxJS operator requirement.
-    // The subscription is automatically cleaned up when the component destroys,
-    // preventing memory leaks.
-    this.authService.currentUser$
+    this.restoreSessionFromToken();
+
+    this.store.select(selectIsLoggedIn)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isLoggedIn => {
+        this.isLoggedIn = isLoggedIn;
+      });
+
+    this.store.select(selectIsAdmin)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isAdmin => {
+        this.isAdmin = isAdmin;
+      });
+
+    this.store.select(selectCurrentUser)
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
-        this.currentUser = user;
+        if (user) {
+          this.displayName = user.firstName
+            ? user.firstName
+            : user.email.split('@')[0];
+        } else {
+          this.displayName = '';
+        }
       });
   }
 
@@ -34,24 +65,35 @@ export class AppComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get isLoggedIn(): boolean {
-    return this.currentUser !== null;
-  }
+  private restoreSessionFromToken(): void {
+    const token = this.tokenStorage.getToken();
+    if (!token) return;
 
-  get isAdmin(): boolean {
-    return this.currentUser?.role === 'ADMIN';
-  }
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payload = JSON.parse(atob(payloadBase64));
 
-  get displayName(): string {
-    if (!this.currentUser) return '';
-    // firstName is empty when restored from JWT decode on refresh —
-    // fall back to email prefix in that case
-    return this.currentUser.firstName
-      ? this.currentUser.firstName
-      : this.currentUser.email.split('@')[0];
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        this.tokenStorage.clearToken();
+        return;
+      }
+
+      this.store.dispatch(AuthActions.restoreSession({
+        user: {
+          id: payload.sub,
+          email: payload.email,
+          role: payload.role,
+          firstName: '',
+          lastName: '',
+        },
+        token,
+      }));
+    } catch {
+      this.tokenStorage.clearToken();
+    }
   }
 
   logout(): void {
-    this.authService.logout();
+    this.store.dispatch(AuthActions.logout());
   }
 }

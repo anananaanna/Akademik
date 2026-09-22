@@ -4,7 +4,15 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, catchError, EMPTY } from 'rxjs';
-import { BookingService, Booking } from '../../core/services/booking.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../store/app.state';
+import * as BookingActions from '../../store/bookings/bookings.actions';
+import {
+  selectAllBookings,
+  selectBookingsLoading,
+  selectBookingsError,
+} from '../../store/bookings/bookings.selectors';
+import { Booking } from '../../core/services/booking.service';
 import { ReviewService, Review } from '../../core/services/review.service';
 import { MaterialService, Material } from '../../core/services/material.service';
 import { ProgressService, Progress } from '../../core/services/progress.service';
@@ -39,7 +47,7 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private bookingService: BookingService,
+    private store: Store<AppState>,
     private reviewService: ReviewService,
     private materialService: MaterialService,
     private progressService: ProgressService,
@@ -52,28 +60,32 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadData();
+    this.store.dispatch(BookingActions.loadMyBookings());
+
+    this.store.select(selectBookingsLoading)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(loading => {
+        this.isLoading = loading;
+      });
+
+    this.store.select(selectBookingsError)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        this.errorMessage = error ?? '';
+      });
+
+    this.store.select(selectAllBookings)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(bookings => {
+        this.bookings = bookings;
+      });
+
+    this.loadReviews();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private loadData(): void {
-    this.isLoading = true;
-    this.bookingService.getMyBookings()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: bookings => {
-          this.bookings = bookings;
-          this.loadReviews();
-        },
-        error: () => {
-          this.isLoading = false;
-          this.errorMessage = 'Failed to load bookings.';
-        },
-      });
   }
 
   private loadReviews(): void {
@@ -82,11 +94,8 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: reviews => {
           this.reviews = reviews;
-          this.isLoading = false;
         },
-        error: () => {
-          this.isLoading = false;
-        },
+        error: () => {},
       });
   }
 
@@ -197,17 +206,17 @@ export class MyBookingsComponent implements OnInit, OnDestroy {
 
   cancelBooking(id: string): void {
     this.cancellingId = id;
-    this.bookingService.cancel(id)
+    this.store.dispatch(BookingActions.cancelBooking({ id }));
+
+    this.store.select(selectBookingsError)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: updated => {
-          this.bookings = this.bookings.map(b => b.id === id ? updated : b);
+      .subscribe(error => {
+        if (error) {
           this.cancellingId = '';
-        },
-        error: err => {
+          this.errorMessage = error;
+        } else {
           this.cancellingId = '';
-          this.errorMessage = err?.error?.message ?? 'Failed to cancel booking.';
-        },
+        }
       });
   }
 

@@ -2,19 +2,20 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Subject, EMPTY } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../store/app.state';
+import * as AdvertisementActions from '../../store/advertisements/advertisements.actions';
 import {
-  Subject,
-  BehaviorSubject,
-  combineLatest,
-  takeUntil,
-  EMPTY,
-} from 'rxjs';
-import { map, switchMap, tap, catchError } from 'rxjs/operators';
-import {
-  AdvertisementService,
-  Advertisement,
-} from '../../core/services/advertisement.service';
-import { AuthService } from '../../core/services/auth.service';
+  selectFilteredAdvertisements,
+  selectAdvertisementsLoading,
+  selectAdvertisementsError,
+  selectSubjectFilter,
+  selectLevelFilter,
+  selectSearchFilter,
+} from '../../store/advertisements/advertisements.selectors';
+import { Advertisement } from '../../core/services/advertisement.service';
 import { TutorProfileService } from '../../core/services/tutor-profile.service';
 
 @Component({
@@ -25,7 +26,6 @@ import { TutorProfileService } from '../../core/services/tutor-profile.service';
   styleUrl: './ads.component.scss',
 })
 export class AdsComponent implements OnInit, OnDestroy {
-  advertisements: Advertisement[] = [];
   filteredAds: Advertisement[] = [];
   subjects: string[] = [];
   isLoading = true;
@@ -47,73 +47,65 @@ export class AdsComponent implements OnInit, OnDestroy {
   ];
 
   private destroy$ = new Subject<void>();
-  private subjectFilter$ = new BehaviorSubject<string>('');
-  private levelFilter$ = new BehaviorSubject<string>('');
-  private searchFilter$ = new BehaviorSubject<string>('');
 
   constructor(
-    private advertisementService: AdvertisementService,
-    private authService: AuthService,
+    private store: Store<AppState>,
     private tutorProfileService: TutorProfileService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$
+    this.store.dispatch(AdvertisementActions.loadAdvertisements());
+
+    this.store.select(selectAdvertisementsLoading)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
-        this.isLoggedIn = user !== null;
-        if (user) {
-          this.tutorProfileService.getMyProfile().pipe(
-            catchError(() => {
-              this.isTutor = false;
-              return EMPTY;
-            }),
-          ).subscribe(() => {
-            this.isTutor = true;
-          });
-        } else {
-          this.isTutor = false;
-        }
+      .subscribe(loading => {
+        this.isLoading = loading;
       });
 
-    this.advertisementService.getAll().pipe(
-      tap(ads => {
-        this.advertisements = ads;
-        this.isLoading = false;
+    this.store.select(selectAdvertisementsError)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        this.errorMessage = error ?? '';
+      });
+
+    this.store.select(selectFilteredAdvertisements)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ads => {
+        this.filteredAds = ads;
         this.subjects = ads
           .map(ad => ad.subject?.name)
           .filter((name, index, self) =>
             name && self.indexOf(name) === index
           ) as string[];
-      }),
-      switchMap(() =>
-        combineLatest([
-          this.subjectFilter$,
-          this.levelFilter$,
-          this.searchFilter$,
-        ])
-      ),
-      map(([subject, level, search]) =>
-        this.advertisements.filter(ad => {
-          const matchesSubject = subject ? ad.subject?.name === subject : true;
-          const matchesLevel = level ? ad.level === level : true;
-          const matchesSearch = search
-            ? ad.title.toLowerCase().includes(search.toLowerCase()) ||
-              ad.description.toLowerCase().includes(search.toLowerCase())
-            : true;
-          return matchesSubject && matchesLevel && matchesSearch;
-        })
-      ),
+      });
+
+    this.store.select(selectSubjectFilter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(subject => {
+        this.selectedSubject = subject;
+      });
+
+    this.store.select(selectLevelFilter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(level => {
+        this.selectedLevel = level;
+      });
+
+    this.store.select(selectSearchFilter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(search => {
+        this.searchText = search;
+      });
+
+    this.tutorProfileService.getMyProfile().pipe(
       takeUntil(this.destroy$),
-    ).subscribe({
-      next: filtered => {
-        this.filteredAds = filtered;
-      },
-      error: () => {
-        this.isLoading = false;
-        this.errorMessage = 'Failed to load advertisements. Please try again.';
-      },
+      catchError(() => {
+        this.isTutor = false;
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.isTutor = true;
     });
   }
 
@@ -123,24 +115,28 @@ export class AdsComponent implements OnInit, OnDestroy {
   }
 
   onSubjectChange(): void {
-    this.subjectFilter$.next(this.selectedSubject);
+    this.store.dispatch(AdvertisementActions.setSubjectFilter({
+      subject: this.selectedSubject,
+    }));
   }
 
   onLevelChange(): void {
-    this.levelFilter$.next(this.selectedLevel);
+    this.store.dispatch(AdvertisementActions.setLevelFilter({
+      level: this.selectedLevel,
+    }));
   }
 
   onSearchChange(): void {
-    this.searchFilter$.next(this.searchText);
+    this.store.dispatch(AdvertisementActions.setSearchFilter({
+      search: this.searchText,
+    }));
   }
 
   clearFilters(): void {
     this.selectedSubject = '';
     this.selectedLevel = '';
     this.searchText = '';
-    this.subjectFilter$.next('');
-    this.levelFilter$.next('');
-    this.searchFilter$.next('');
+    this.store.dispatch(AdvertisementActions.clearFilters());
   }
 
   bookAd(ad: Advertisement): void {
