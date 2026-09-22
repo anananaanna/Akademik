@@ -38,6 +38,12 @@ export class TutorApplicationService {
     return this.tutorApplicationRepository.save(application);
   }
 
+    async findAll(): Promise<TutorApplication[]> {
+    return this.tutorApplicationRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findByUserId(userId: string): Promise<TutorApplication> {
     const application = await this.tutorApplicationRepository.findOne({
       where: { userId },

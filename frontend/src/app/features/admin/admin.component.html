@@ -1,4 +1,90 @@
-<div class="page-placeholder">
-  <h1>Admin Dashboard</h1>
-  <p>Platform administration and management.</p>
+<div class="admin-page">
+  <div class="page-header">
+    <h1>Admin Dashboard</h1>
+  </div>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="tabs">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'users'"
+      (click)="setTab('users')"
+    >
+      Users ({{ users.length }})
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'applications'"
+      (click)="setTab('applications')"
+    >
+      Tutor Applications ({{ applications.length }})
+    </button>
+  </div>
+
+  <div *ngIf="activeTab === 'users'">
+    <div class="loading" *ngIf="isLoadingUsers">
+      <p>Loading users...</p>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoadingUsers">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Registered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.firstName }} {{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="badge" [class]="getRoleBadgeClass(user.role)">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>{{ formatDate(user.createdAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'applications'">
+    <div class="loading" *ngIf="isLoadingApplications">
+      <p>Loading applications...</p>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoadingApplications">
+      <div class="empty" *ngIf="applications.length === 0">
+        <p>No tutor applications yet.</p>
+      </div>
+
+      <table class="data-table" *ngIf="applications.length > 0">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Status</th>
+            <th>Motivation</th>
+            <th>Applied</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let app of applications">
+            <td class="id-cell">{{ app.userId }}</td>
+            <td>
+              <span class="badge" [class]="getStatusBadgeClass(app.status)">
+                {{ app.status }}
+              </span>
+            </td>
+            <td class="motivation-cell">{{ app.motivation }}</td>
+            <td>{{ formatDate(app.createdAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
