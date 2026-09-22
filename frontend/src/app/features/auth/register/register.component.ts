@@ -1,8 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../store/app.state';
+import * as AuthActions from '../../../store/auth/auth.actions';
+import { selectAuthLoading, selectAuthError } from '../../../store/auth/auth.selectors';
 
 @Component({
   selector: 'app-register',
@@ -11,15 +16,16 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   registerForm: FormGroup;
   isLoading = false;
   errorMessage = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
+    private store: Store<AppState>,
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -34,6 +40,25 @@ export class RegisterComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.store.select(selectAuthLoading)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(loading => {
+        this.isLoading = loading;
+      });
+
+    this.store.select(selectAuthError)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        this.errorMessage = error ?? '';
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get firstName() { return this.registerForm.get('firstName'); }
   get lastName()  { return this.registerForm.get('lastName'); }
   get email()     { return this.registerForm.get('email'); }
@@ -45,18 +70,13 @@ export class RegisterComponent {
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.register(this.registerForm.value).subscribe({
-      next: () => {
-        this.router.navigate(['/home']);
+    this.store.dispatch(AuthActions.register({
+      credentials: {
+        firstName: this.registerForm.value.firstName,
+        lastName: this.registerForm.value.lastName,
+        email: this.registerForm.value.email,
+        password: this.registerForm.value.password,
       },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage =
-          err?.error?.message ?? 'Registration failed. Please try again.';
-      },
-    });
+    }));
   }
 }

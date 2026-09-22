@@ -15,12 +15,14 @@
     </ng-container>
 
     <ng-container *ngIf="isLoggedIn">
-      <a routerLink="/tutor-profile" routerLinkActive="nav-active">Tutor Profile</a>
-      <a routerLink="/my-bookings" routerLinkActive="nav-active">My Bookings</a>
-      <a routerLink="/my-reviews" routerLinkActive="nav-active">My Reviews</a>
-      <a routerLink="/my-ads" routerLinkActive="nav-active" *ngIf="isLoggedIn">My Ads</a>
-      <a routerLink="/my-slots" routerLinkActive="nav-active">My Slots</a>
-      <a routerLink="/tutor-bookings" routerLinkActive="nav-active">Student Bookings</a>
+      <a routerLink="/my-bookings" routerLinkActive="nav-active" *ngIf="!isTutor">My Bookings</a>
+      <a routerLink="/my-reviews" routerLinkActive="nav-active" *ngIf="!isTutor">My Reviews</a>
+
+      <a routerLink="/tutor-profile" routerLinkActive="nav-active" *ngIf="isTutor">Tutor Profile</a>
+      <a routerLink="/my-ads" routerLinkActive="nav-active" *ngIf="isTutor">My Ads</a>
+      <a routerLink="/my-slots" routerLinkActive="nav-active" *ngIf="isTutor">My Slots</a>
+      <a routerLink="/tutor-bookings" routerLinkActive="nav-active" *ngIf="isTutor">Student Bookings</a>
+
       <a routerLink="/admin" routerLinkActive="nav-active" *ngIf="isAdmin">Admin</a>
 
       <div class="nav-user">

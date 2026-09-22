@@ -2,12 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, catchError, EMPTY } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from './store/app.state';
 import * as AuthActions from './store/auth/auth.actions';
 import { selectCurrentUser, selectIsLoggedIn, selectIsAdmin } from './store/auth/auth.selectors';
 import { TokenStorageService } from './core/services/token-storage.service';
+import { TutorProfileService } from './core/services/tutor-profile.service';
 
 @Component({
   selector: 'app-root',
@@ -17,12 +18,9 @@ import { TokenStorageService } from './core/services/token-storage.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit, OnDestroy {
-  isLoggedIn$ = this.store.select(selectIsLoggedIn);
-  isAdmin$ = this.store.select(selectIsAdmin);
-  currentUser$ = this.store.select(selectCurrentUser);
-
   isLoggedIn = false;
   isAdmin = false;
+  isTutor = false;
   displayName = '';
 
   private destroy$ = new Subject<void>();
@@ -30,6 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private store: Store<AppState>,
     private tokenStorage: TokenStorageService,
+    private tutorProfileService: TutorProfileService,
   ) {}
 
   ngOnInit(): void {
@@ -39,6 +38,11 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(isLoggedIn => {
         this.isLoggedIn = isLoggedIn;
+        if (isLoggedIn) {
+          this.checkTutorProfile();
+        } else {
+          this.isTutor = false;
+        }
       });
 
     this.store.select(selectIsAdmin)
@@ -63,6 +67,18 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private checkTutorProfile(): void {
+    this.tutorProfileService.getMyProfile().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => {
+        this.isTutor = false;
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.isTutor = true;
+    });
   }
 
   private restoreSessionFromToken(): void {
