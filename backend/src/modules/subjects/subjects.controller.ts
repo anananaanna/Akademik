@@ -1,20 +1,20 @@
-import { Controller, Get, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { SubjectsService } from './subject.service';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { Subject } from './entities/subject.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('subjects')
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 
-  // GET /api/v1/subjects — public, no auth required per spec
   @Get()
   async findAll(): Promise<Subject[]> {
     return this.subjectsService.findAll();
   }
 
-  // POST /api/v1/subjects — public, no auth required per spec
   @Post()
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateSubjectDto): Promise<Subject> {
     return this.subjectsService.create(dto);
